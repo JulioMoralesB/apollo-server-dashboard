@@ -1,18 +1,45 @@
 import ServiceCard from "./components/ServiceCard"
-
-const services = [
-  { name: "Minecraft Server", status: "online" },
-  { name: "Discord Bot", status : "offline" },
-  { name: "Free Games Notifier", status: "online" },
-]
+import { useEffect,useState } from "react"
 
 function App() {
+
+   const [services, setServices] = useState([])
+   const [loading, setLoading] = useState(true)
+   const [error , setError] = useState(null)
+
+useEffect(()=>{
+  const getData = async ()=>{
+
+    try{
+
+      const res = await fetch('/services');
+      const data = await res.json()
+      setServices(data)
+
+    }catch(err){
+      setError(err.message)
+      console.log('Error are ' ,err)
+    }finally{
+      setLoading(false)
+    }
+
+  }
+  getData()
+},[])
+
+
   return (
     <div className="dashboard">
       <h1>Apollo Server Dashboard</h1>
+      {loading && (<h1>
+        Loading.....
+      </h1>)}
+      {error && (<h1>
+        Error: {error}
+      </h1>)}
       <div className="services-grid">
         {services.map((service, index) => (
-          <ServiceCard key={index} name={service.name} status={service.status} />
+          <ServiceCard key={index} {...service} />
         ))}
       </div>
     </div>
