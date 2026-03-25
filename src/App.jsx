@@ -7,6 +7,8 @@ function App() {
    const [loading, setLoading] = useState(true)
    const [error , setError] = useState(null)
 
+   //Ok Eveything Is Done 
+
 useEffect(()=>{
   const getData = async ()=>{
 
