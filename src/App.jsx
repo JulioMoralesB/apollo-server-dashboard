@@ -12,8 +12,20 @@ useEffect(()=>{
 
     try{
 
-      const res = await fetch('/services');
-      const data = await res.json()
+      const res = await fetch('/services',{
+        headers :{
+              "x-api-key": import.meta.env.VITE_API_KEY
+
+        }
+      });
+     
+    if (!res.ok) {
+  if (res.status === 401) {
+    throw new Error("Unauthorized - Invalid API key");
+  }
+  throw new Error("Failed to fetch services");
+}
+       const data = await res.json()
       setServices(data)
 
     }catch(err){
