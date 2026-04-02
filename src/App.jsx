@@ -7,19 +7,30 @@ function App() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    fetch("/services")
+    const controller = new AbortController()
+    let didCancel = false
+
+    fetch("/services", { signal: controller.signal })
       .then((res) => {
         if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
         return res.json()
       })
       .then((data) => {
+        if (didCancel) return
+        setError(null)
         setServices(data)
         setLoading(false)
       })
       .catch((err) => {
+        if (didCancel || err.name === "AbortError") return
         setError(err.message)
         setLoading(false)
       })
+
+    return () => {
+      didCancel = true
+      controller.abort()
+    }
   }, [])
 
   return (
@@ -28,8 +39,8 @@ function App() {
       {loading && <p>Loading...</p>}
       {error && <p>Error: {error}</p>}
       <div className="services-grid">
-        {services.map((service) => (
-          <ServiceCard key={service.name} name={service.name} status={service.status} />
+        {services.map((service, index) => (
+          <ServiceCard key={`${service.name}-${index}`} name={service.name} status={service.status} />
         ))}
       </div>
     </div>
