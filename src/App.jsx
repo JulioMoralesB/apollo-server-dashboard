@@ -1,12 +1,16 @@
+import { useEffect, useState } from "react"
 import ServiceCard from "./components/ServiceCard"
 
-const services = [
-  { name: "Minecraft Server", status: "online" },
-  { name: "Discord Bot", status : "offline" },
-  { name: "Free Games Notifier", status: "online" },
-]
-
 function App() {
+  const [services, setServices] = useState([])
+
+  useEffect(() => {
+    fetch("/services")
+      .then((res) => res.json())
+      .then((data) => setServices(data))
+      .catch((err) => console.error("Failed to fetch services:", err))
+  }, [])
+
   return (
     <div className="dashboard">
       <h1>Apollo Server Dashboard</h1>
