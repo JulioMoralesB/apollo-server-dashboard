@@ -1,3 +1,6 @@
+import os
+
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -11,18 +14,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+FREE_GAMES_NOTIFIER_URL = os.getenv(
+    "FREE_GAMES_NOTIFIER_URL", "http://free-games-notifier:8000"
+)
+
 
 class Service(BaseModel):
     name: str
     status: str
 
 
-services: list[Service] = [
-    Service(name="Minecraft", status="online"),
-    Service(name="Epic Games Bot", status="online"),
-]
+def check_free_games_notifier() -> str:
+    try:
+        response = httpx.get(f"{FREE_GAMES_NOTIFIER_URL}/health", timeout=5)
+        data = response.json()
+        return "online" if data.get("status") == "healthy" else "offline"
+    except Exception:
+        return "offline"
 
 
 @app.get("/services", response_model=list[Service])
 def get_services() -> list[Service]:
-    return services
+    return [
+        Service(name="Minecraft", status="online"),
+        Service(name="Epic Games Bot", status=check_free_games_notifier()),
+    ]
