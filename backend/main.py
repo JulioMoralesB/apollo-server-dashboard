@@ -5,11 +5,14 @@ import time
 from contextlib import asynccontextmanager
 
 import httpx
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
+
+load_dotenv()
 
 FREE_GAMES_NOTIFIER_URL = os.getenv(
     "FREE_GAMES_NOTIFIER_URL", "http://free-games-notifier:8000"
