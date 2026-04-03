@@ -40,5 +40,5 @@ def check_free_games_notifier() -> str:
 def get_services() -> list[Service]:
     return [
         Service(name="Minecraft", status="online"),
-        Service(name="Epic Games Bot", status=check_free_games_notifier()),
+        Service(name="Free Games Notifier", status=check_free_games_notifier()),
     ]
