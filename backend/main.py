@@ -18,6 +18,8 @@ FREE_GAMES_NOTIFIER_URL = os.getenv(
     "FREE_GAMES_NOTIFIER_URL", "http://free-games-notifier:8000"
 )
 
+_http_client = httpx.Client(timeout=5)
+
 
 class Service(BaseModel):
     name: str
@@ -26,7 +28,8 @@ class Service(BaseModel):
 
 def check_free_games_notifier() -> str:
     try:
-        response = httpx.get(f"{FREE_GAMES_NOTIFIER_URL}/health", timeout=5)
+        response = _http_client.get(f"{FREE_GAMES_NOTIFIER_URL}/health")
+        response.raise_for_status()
         data = response.json()
         return "online" if data.get("status") == "healthy" else "offline"
     except Exception:
