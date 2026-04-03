@@ -27,3 +27,6 @@ dist-ssr
 __pycache__
 *.pyc
 .venv
+
+# Environment variables
+.env
