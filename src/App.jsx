@@ -1,35 +1,50 @@
 import { useEffect, useState } from "react"
 import ServiceCard from "./components/ServiceCard"
 
+const REFRESH_INTERVAL_MS = 30_000
+
 function App() {
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [lastUpdated, setLastUpdated] = useState(null)
 
   useEffect(() => {
-    const controller = new AbortController()
     let didCancel = false
+    let currentController = null
 
-    fetch("/services", { signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
-        return res.json()
-      })
-      .then((data) => {
-        if (didCancel) return
-        setError(null)
-        setServices(data)
-        setLoading(false)
-      })
-      .catch((err) => {
-        if (didCancel || err.name === "AbortError") return
-        setError(err.message)
-        setLoading(false)
-      })
+    function fetchServices() {
+      currentController?.abort()
+      const controller = new AbortController()
+      currentController = controller
+
+      fetch("/services", { signal: controller.signal })
+        .then((res) => {
+          if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
+          return res.json()
+        })
+        .then((data) => {
+          if (didCancel) return
+          setError(null)
+          setServices(data)
+          setLoading(false)
+          setLastUpdated(new Date())
+        })
+        .catch((err) => {
+          if (didCancel || err.name === "AbortError") return
+          setError(err.message)
+          setLoading(false)
+        })
+    }
+
+    fetchServices()
+
+    const intervalId = setInterval(fetchServices, REFRESH_INTERVAL_MS)
 
     return () => {
       didCancel = true
-      controller.abort()
+      clearInterval(intervalId)
+      currentController?.abort()
     }
   }, [])
 
@@ -43,6 +58,11 @@ function App() {
           <ServiceCard key={`${service.name}-${index}`} name={service.name} status={service.status} />
         ))}
       </div>
+      {lastUpdated && (
+        <p className="last-updated">
+          Last updated: {lastUpdated.toLocaleTimeString()}
+        </p>
+      )}
     </div>
   )
 }
