@@ -28,7 +28,7 @@ _cache: dict = {}
 router = APIRouter(prefix="/services/free-games-notifier", tags=["free-games-notifier"])
 
 _ACTIONS = [
-    Action(label='Resend Notification', icon='send', endpoint='/services/free-games-notifier/resend', method='POST'),
+    Action(label='Resend Notification', icon='send', endpoint='/services/free-games-notifier/resend', method='POST', confirm=True),
     Action(label='Resend Test Notification', icon='send-horizontal', endpoint='/services/free-games-notifier/resend/test', method='POST'),
 ]
 
@@ -97,4 +97,4 @@ def get_card() -> Service:
     else:
         status = _fetch_status()
         _cache["status"] = (status, now)
-    return Service(name="Free Games Notifier", status=status, actions=_ACTIONS)
+    return Service(name="Free Games Notifier", status=status, icon="bell-ring", actions=_ACTIONS)
