@@ -34,16 +34,18 @@ _ACTIONS = [
 
 @router.post("/resend")
 def resend_notification() -> ActionResult:
+    url = f"{FREE_GAMES_NOTIFIER_URL}/notify/discord/resend"
     client = http_client.get()
     try:
-        response = client.post(f"{FREE_GAMES_NOTIFIER_URL}/notify/discord/resend", headers={"X-API-Key": FREE_GAMES_NOTIFIER_API_KEY})
+        logger.info("POST %s", url)
+        response = client.post(url, headers={"X-API-Key": FREE_GAMES_NOTIFIER_API_KEY})
         response.raise_for_status()
         return ActionResult(success=True)
     except httpx.HTTPStatusError as exc:
-        logger.warning("Failed to resend notification: HTTP %s", exc.response.status_code)
+        logger.warning("POST %s -> HTTP %s: %s", url, exc.response.status_code, exc.response.text)
         return ActionResult(success=False, message=f"HTTP {exc.response.status_code}")
     except httpx.RequestError as exc:
-        logger.warning("Failed to resend notification: %s", exc)
+        logger.warning("POST %s failed: %s", url, exc)
         return ActionResult(success=False, message="Service unreachable: " + str(exc))
 
 @router.post("/resend/test")
@@ -52,20 +54,22 @@ def resend_test_notification() -> ActionResult:
         logger.warning("Test webhook URL not configured")
         return ActionResult(success=False, message="Test webhook URL not configured")
 
+    url = f"{FREE_GAMES_NOTIFIER_URL}/notify/discord/resend"
     client = http_client.get()
     try:
+        logger.info("POST %s (test webhook)", url)
         response = client.post(
-            f"{FREE_GAMES_NOTIFIER_URL}/notify/discord/resend",
+            url,
             headers={"X-API-Key": FREE_GAMES_NOTIFIER_API_KEY},
             json={"webhook_url": FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL},
         )
         response.raise_for_status()
         return ActionResult(success=True)
     except httpx.HTTPStatusError as exc:
-        logger.warning("Failed to resend test notification: HTTP %s", exc.response.status_code)
+        logger.warning("POST %s (test webhook) -> HTTP %s: %s", url, exc.response.status_code, exc.response.text)
         return ActionResult(success=False, message=f"HTTP {exc.response.status_code}")
     except httpx.RequestError as exc:
-        logger.warning("Failed to resend test notification: %s", exc)
+        logger.warning("POST %s (test webhook) failed: %s", url, exc)
         return ActionResult(success=False, message="Service unreachable: " + str(exc))
     
 

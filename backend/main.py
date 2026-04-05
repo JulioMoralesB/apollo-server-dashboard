@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
@@ -14,6 +15,8 @@ from services.minecraft import get_card as minecraft_card
 from services.minecraft import router as minecraft_router
 
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
 
 API_KEY = os.getenv("API_KEY")
 if not API_KEY:
