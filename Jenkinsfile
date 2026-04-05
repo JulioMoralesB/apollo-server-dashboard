@@ -1,3 +1,3 @@
 @Library('dockge-pipeline') _
 
-deployService(serviceName: 'apollo-server-dashboard')
+dockgeDeploy(serviceName: 'apollo-server-dashboard')
