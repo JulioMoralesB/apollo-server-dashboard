@@ -13,7 +13,7 @@ def _upstream_error(exc: httpx.HTTPStatusError) -> str:
     try:
         detail = exc.response.json().get("detail")
         if detail:
-            return str(f"HTTP {exc.response.status_code}: {detail}")
+            return f"HTTP {exc.response.status_code}: {detail}"
     except Exception:
         pass
     return f"HTTP {exc.response.status_code}"
