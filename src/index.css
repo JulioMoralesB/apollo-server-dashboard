@@ -23,16 +23,17 @@ h1 {
 
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 140px);
-  gap: 50px;
+  grid-template-columns: repeat(auto-fill, 174px);
+  gap: 25px;
   align-items: start;
+  
 }
 
 .last-updated {
   font-family: monospace;
   font-size: 11px;
   color: rgba(250, 250, 255, 0.3);
-  margin: 0;
+  white-space: nowrap;
 }
 
 @keyframes spin {
@@ -52,6 +53,8 @@ h1 {
   margin-bottom: 24px;
   padding-bottom: 16px;
   border-bottom: 0.5px solid #2a2d30;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .header-title {
@@ -60,18 +63,21 @@ h1 {
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--blueishWhite);
+  white-space: nowrap;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .header-right {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-shrink: 0;
 }
 
 .logout-btn {
@@ -112,4 +118,18 @@ h1 {
 .state-icon {
   font-size: 14px;
   opacity: 0.6;
+}
+
+@media (max-width: 400px) {
+  .last-updated {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .services-grid {
+    grid-template-columns: repeat(auto-fill, 136px);
+    gap: 30px;
+    justify-content: center;
+  }
 }

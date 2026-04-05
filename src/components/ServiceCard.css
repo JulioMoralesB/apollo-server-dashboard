@@ -130,3 +130,25 @@
     transform: translateY(0);
   }
 }
+
+@media (max-width: 480px) {
+  .service-card {
+    width: 110px;
+    height: 110px;
+    padding: 12px;
+  }
+  
+  .card-icon { top: 16px; }
+  
+  .service-name {
+    font-size: 9px;
+    min-height: 22px;
+  }
+  
+  .service-status {
+    font-size: 9px;
+    gap: 4px;
+  }
+  
+  .dot { width: 4px; height: 4px; }
+}
