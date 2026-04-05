@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+import os
+from fastapi import FastAPI, HTTPException, Security, status
+from fastapi.security import APIKeyHeader   
 from fastapi.middleware.cors import CORSMiddleware
 
 import http_client
@@ -13,6 +15,15 @@ from services.minecraft import router as minecraft_router
 
 load_dotenv()
 
+API_KEY = os.getenv("API_KEY")
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+def verify_api_key(api_key: str = Security(api_key_header)):
+    if api_key != API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API Key",
+        )
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,7 +32,7 @@ async def lifespan(app: FastAPI):
     http_client.close()
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, dependencies=[Security(verify_api_key)])
 
 app.add_middleware(
     CORSMiddleware,

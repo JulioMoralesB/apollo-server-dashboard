@@ -14,3 +14,8 @@ class Service(BaseModel):
     name: str
     status: str
     actions: list[Action] | None = None
+
+
+class ActionResult(BaseModel):
+    success: bool
+    message: str | None = None
