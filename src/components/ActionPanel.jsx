@@ -1,9 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "./ActionPanel.css"
 import { getIcon } from "../utils/icons.jsx"
 
+
 function ActionPanel ({service, onClose, apiKey}) {
     const actions = service.actions || [];
+    const [actionStates, setActionStates] = useState({});
+    const [errorMessage, setErrorMessage] = useState(null);
 
     // Close panel on Escape key press
     useEffect(() => {
@@ -14,12 +17,15 @@ function ActionPanel ({service, onClose, apiKey}) {
         return () => window.removeEventListener("keydown", handleKey);
     }, [onClose]);
 
-    const handleAction = (action) => {
+    const handleAction = (action, index) => {
         if (action.href) {
             window.open(action.href, "_blank", "noopener");
             return;
         }
         if (action.endpoint) {
+
+            setActionStates((prev) => ({ ...prev, [index]: "loading" }));
+
             fetch(action.endpoint, { 
                 method: action.method || "POST", 
                 headers: {
@@ -27,8 +33,29 @@ function ActionPanel ({service, onClose, apiKey}) {
                     "X-API-Key": apiKey,
                     ...action.headers,
                  },
-                body: action.payload ? JSON.stringify(action.payload) : undefined,})
-                .catch((err) => console.error(`Error performing action ${action.label}:`, err));
+                body: action.payload ? JSON.stringify(action.payload) : undefined,
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    const state = data.success ? "success" : "error";
+                    setActionStates((prev) => ({ ...prev, [index]: state }));
+                    if (!data.success && data.message) {
+                        setErrorMessage(`Error performing action ${action.label}: ${data.message}`);
+                        setTimeout(() => setErrorMessage(null), 4000);
+                    }
+                })
+                .catch((err) => {
+                    console.error(`Error performing action ${action.label}:`, err);
+                    setErrorMessage(`Error performing action ${action.label}: ${err.message}`);
+                    setActionStates((prev) => ({ ...prev, [index]: "error" }));
+                    setTimeout(() => setErrorMessage(null), 4000);
+                })
+                .finally(() => {
+                    setTimeout(() => {
+                        setActionStates((prev) => ({ ...prev, [index]: "idle" }));
+                    }, 2000);
+                });
+                
         }
     };
 
@@ -43,13 +70,28 @@ function ActionPanel ({service, onClose, apiKey}) {
             <p className="panel-empty">No hay acciones configuradas.</p>
             ) : (
             <div className="actions-grid">
-                {actions.map((action, i) => (
-                <button key={i} className="action-card" onClick={() => handleAction(action)}>
-                    {action.icon && <span className="action-icon">{getIcon(action.icon, { size: 24 })}</span>}
-                    <span className="action-label">{action.label}</span>
-                </button>
-                ))}
+                {actions.map((action, i) => {
+                    const state = actionStates[i] || "idle";
+                    return (
+                        <button 
+                            key={i} 
+                            className={`action-card ${state}`} 
+                            onClick={() => handleAction(action, i)}
+                            disabled={state === "loading"}
+                        >
+                        {action.icon && (
+                            <span className="action-icon">
+                                {getIcon(action.icon, { size: 24 })}
+                                </span>
+                        )}
+                        <span className="action-label">{action.label}</span>
+                        </button>
+                    );
+                })}
             </div>
+            )}
+            {errorMessage && (
+                <p className="action-error">{errorMessage}</p>
             )}
         </div>
 )
