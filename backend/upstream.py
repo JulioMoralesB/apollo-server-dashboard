@@ -9,7 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 def _upstream_error(exc: httpx.HTTPStatusError) -> str:
-    """Return the 'detail' field from the upstream JSON response, or a generic HTTP error."""
+    """Extract a human-readable error message from an upstream HTTP error response.
+
+    Returns the 'detail' field from the JSON body prefixed with the status code,
+    or just the status code string if JSON parsing fails or 'detail' is absent.
+    """
     try:
         detail = exc.response.json().get("detail")
         if detail:
@@ -32,6 +36,11 @@ def post_to_upstream(
         label: Optional context tag appended to log messages (e.g. "test webhook").
         headers: Optional HTTP headers to include in the request.
         body: Optional JSON body to send with the request.
+
+    Returns:
+        ActionResult with ``success=True`` when the upstream returns a 2xx response.
+        ActionResult with ``success=False`` and a ``message`` describing the error
+        when the upstream returns a non-2xx status or the request fails entirely.
     """
     client = http_client.get()
     tag = f" ({label})" if label else ""
