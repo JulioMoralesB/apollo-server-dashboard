@@ -27,6 +27,17 @@ _cache: dict = {}
 
 router = APIRouter(prefix="/services/free-games-notifier", tags=["free-games-notifier"])
 
+
+def _upstream_error(exc: httpx.HTTPStatusError) -> str:
+    """Return the 'detail' field from the upstream JSON response, or a generic HTTP error."""
+    try:
+        detail = exc.response.json().get("detail")
+        if detail:
+            return str(f"HTTP {exc.response.status_code}: {detail}")
+    except Exception:
+        pass
+    return f"HTTP {exc.response.status_code}"
+
 _ACTIONS = [
     Action(label='Resend Notification', icon='send', endpoint='/services/free-games-notifier/resend', method='POST', confirm=True),
     Action(label='Resend Test Notification', icon='send-horizontal', endpoint='/services/free-games-notifier/resend/test', method='POST'),
@@ -43,7 +54,7 @@ def resend_notification() -> ActionResult:
         return ActionResult(success=True)
     except httpx.HTTPStatusError as exc:
         logger.warning("POST %s -> HTTP %s: %s", url, exc.response.status_code, exc.response.text)
-        return ActionResult(success=False, message=f"HTTP {exc.response.status_code}")
+        return ActionResult(success=False, message=_upstream_error(exc))
     except httpx.RequestError as exc:
         logger.warning("POST %s failed: %s", url, exc)
         return ActionResult(success=False, message="Service unreachable: " + str(exc))
@@ -67,7 +78,7 @@ def resend_test_notification() -> ActionResult:
         return ActionResult(success=True)
     except httpx.HTTPStatusError as exc:
         logger.warning("POST %s (test webhook) -> HTTP %s: %s", url, exc.response.status_code, exc.response.text)
-        return ActionResult(success=False, message=f"HTTP {exc.response.status_code}")
+        return ActionResult(success=False, message=_upstream_error(exc))
     except httpx.RequestError as exc:
         logger.warning("POST %s (test webhook) failed: %s", url, exc)
         return ActionResult(success=False, message="Service unreachable: " + str(exc))
