@@ -5,17 +5,16 @@ function ServiceCard({ name, status, onClick }) {
   const isOnline = status === "online"
 
   return (
-    <div 
+    <button
       className={`service-card ${isOnline ? "online" : "offline"}`}
       onClick={onClick}
-      style={{ cursor: "pointer"}}
     >
       <p className="service-name">{name.toUpperCase()}</p>
       <p className={`service-status ${isOnline ? "online" : "offline"}`}>
         <span className="dot"></span>
         {isOnline ? "Online" : "Offline"}
       </p>
-    </div>
+    </button>
   )
 }
 

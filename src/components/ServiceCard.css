@@ -3,6 +3,10 @@
   border: 0.5px solid #2a2d30;
   border-radius: 8px;
   padding: 14px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font: inherit;
 }
 
 .service-name {

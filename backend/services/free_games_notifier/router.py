@@ -72,7 +72,7 @@ def resend_test_notification() -> ActionResult:
 def _fetch_status() -> str:
     client = http_client.get()
     try:
-        print (f"Checking Free Games Notifier health at {FREE_GAMES_NOTIFIER_URL}/health")
+        logger.debug("Checking Free Games Notifier health at %s/health", FREE_GAMES_NOTIFIER_URL)
         response = client.get(f"{FREE_GAMES_NOTIFIER_URL}/health", headers={"X-API-Key": FREE_GAMES_NOTIFIER_API_KEY})
         response.raise_for_status()
         data = response.json()

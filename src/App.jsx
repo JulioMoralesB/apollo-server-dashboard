@@ -23,6 +23,10 @@ function App() {
   const handleLogout = () => {
     setApiKey("")
     sessionStorage.removeItem("apiKey")
+    setSelectedService(null)
+    setServices([])
+    setError(null)
+    setLastUpdated(null)
     setAuthError(true)
   }
 

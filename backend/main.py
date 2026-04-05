@@ -16,7 +16,10 @@ from services.minecraft import router as minecraft_router
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
-api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+if not API_KEY:
+    raise RuntimeError("API_KEY environment variable is not set")
+
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=True)
 
 def verify_api_key(api_key: str = Security(api_key_header)):
     if api_key != API_KEY:
@@ -37,7 +40,7 @@ app = FastAPI(lifespan=lifespan, dependencies=[Security(verify_api_key)])
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 

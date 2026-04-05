@@ -1,4 +1,4 @@
-import { act, useEffect } from "react";
+import { useEffect } from "react";
 import "./ActionPanel.css"
 import { getIcon } from "../utils/icons.jsx"
 
@@ -28,7 +28,7 @@ function ActionPanel ({service, onClose, apiKey}) {
                     ...action.headers,
                  },
                 body: action.payload ? JSON.stringify(action.payload) : undefined,})
-                .catch((err) => console.error(`Error performing action ${action.name}:`, err));
+                .catch((err) => console.error(`Error performing action ${action.label}:`, err));
         }
     };
 
