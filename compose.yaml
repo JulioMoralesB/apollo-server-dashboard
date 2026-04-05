@@ -16,10 +16,10 @@ services:
       context: ./backend
     container_name: apollo-server-dashboard-backend
     environment:
-      - API_KEY=${API_KEY:?API_KEY must be set and non-empty}
+      - API_KEY=${API_KEY:-}
       - FREE_GAMES_NOTIFIER_URL=${FREE_GAMES_NOTIFIER_URL:-http://free-games-notifier:8000}
-      - FREE_GAMES_NOTIFIER_API_KEY=${FREE_GAMES_NOTIFIER_API_KEY}
-      - FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL=${FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL}
+      - FREE_GAMES_NOTIFIER_API_KEY=${FREE_GAMES_NOTIFIER_API_KEY:-}
+      - FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL=${FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL:-}
     restart: unless-stopped
     networks:
       - apollo-server-network
