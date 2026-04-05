@@ -32,16 +32,16 @@ function App() {
   }
 
   useEffect(() => {
-
     const onlineCount = services.filter(s => s.status === "online").length
     document.title = services.length > 0
       ? `Apollo - ${onlineCount}/${services.length} online`
       : "Apollo Dashboard"
+  }, [services])
 
+  useEffect(() => {
     if (!apiKey) return
     let didCancel = false
     let currentController = null
-    
 
     function fetchServices() {
       currentController?.abort()
@@ -80,7 +80,7 @@ function App() {
       clearInterval(intervalId)
       currentController?.abort()
     }
-  }, [apiKey, services])
+  }, [apiKey])
 
   if (!apiKey) {
     return <Login onLogin={handleLogin} error={authError} />

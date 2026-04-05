@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./ActionPanel.css"
 import { getIcon } from "../utils/icons.jsx"
 
@@ -8,6 +8,8 @@ function ActionPanel ({service, onClose, apiKey}) {
     const [actionStates, setActionStates] = useState({});
     const [errorMessage, setErrorMessage] = useState(null);
     const [pendingAction, setPendingAction] = useState(null);
+    const errorTimeoutRef = useRef(null);
+    const stateTimeoutsRef = useRef({});
 
     // Close panel on Escape key press
     useEffect(() => {
@@ -17,6 +19,20 @@ function ActionPanel ({service, onClose, apiKey}) {
         window.addEventListener("keydown", handleKey);
         return () => window.removeEventListener("keydown", handleKey);
     }, [onClose]);
+
+    // Clear all pending timeouts on unmount
+    useEffect(() => {
+        return () => {
+            if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+            Object.values(stateTimeoutsRef.current).forEach(clearTimeout);
+        };
+    }, []);
+
+    const setErrorWithTimeout = (msg) => {
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+        setErrorMessage(msg);
+        errorTimeoutRef.current = setTimeout(() => setErrorMessage(null), 4000);
+    };
 
     const handleAction = (action, index) => {
         if (action.confirm) {
@@ -55,24 +71,37 @@ function ActionPanel ({service, onClose, apiKey}) {
                  },
                 body: action.payload ? JSON.stringify(action.payload) : undefined,
             })
-                .then((res) => res.json())
+                .then((res) => {
+                    if (res.status === 401) {
+                        onClose();
+                        return null;
+                    }
+                    if (!res.ok) {
+                        return res.json().catch(() => null).then((data) => {
+                            const msg = data?.detail || data?.message || res.statusText;
+                            throw new Error(msg);
+                        });
+                    }
+                    return res.json();
+                })
                 .then((data) => {
+                    if (!data) return;
                     const state = data.success ? "success" : "error";
                     setActionStates((prev) => ({ ...prev, [index]: state }));
                     if (!data.success && data.message) {
-                        setErrorMessage(`Error performing action ${action.label}: ${data.message}`);
-                        setTimeout(() => setErrorMessage(null), 4000);
+                        setErrorWithTimeout(`Error performing action ${action.label}: ${data.message}`);
                     }
                 })
                 .catch((err) => {
                     console.error(`Error performing action ${action.label}:`, err);
-                    setErrorMessage(`Error performing action ${action.label}: ${err.message}`);
+                    setErrorWithTimeout(`Error performing action ${action.label}: ${err.message}`);
                     setActionStates((prev) => ({ ...prev, [index]: "error" }));
-                    setTimeout(() => setErrorMessage(null), 4000);
                 })
                 .finally(() => {
-                    setTimeout(() => {
+                    if (stateTimeoutsRef.current[index]) clearTimeout(stateTimeoutsRef.current[index]);
+                    stateTimeoutsRef.current[index] = setTimeout(() => {
                         setActionStates((prev) => ({ ...prev, [index]: "idle" }));
+                        delete stateTimeoutsRef.current[index];
                     }, 2000);
                 });
                 
@@ -87,7 +116,7 @@ function ActionPanel ({service, onClose, apiKey}) {
             </div>
 
             {actions.length === 0 ? (
-            <p className="panel-empty">No hay acciones configuradas.</p>
+            <p className="panel-empty">No actions configured.</p>
             ) : (
             <div className="actions-grid">
                 {actions.map((action, i) => {
