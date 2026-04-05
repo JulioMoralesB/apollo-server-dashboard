@@ -25,9 +25,10 @@ Built with React + Vite (frontend) and FastAPI (backend). Runs as two Docker con
     ├── main.py             # FastAPI app entry point
     ├── models.py           # Pydantic models (Service, Action, ActionResult)
     ├── http_client.py      # Shared httpx client singleton
+    ├── upstream.py         # Shared helper: POST to upstream service + map errors to ActionResult
     └── services/
         ├── minecraft/      # Minecraft service card + actions
-        └── free_games_notifier/  # Free Games Notifier card + actions
+        └── free_games_notifier/  # Free Games Notifier card + actions (resend, E2E checks)
 ```
 
 ## Local Development
@@ -86,7 +87,18 @@ The dashboard will be available at `http://<host>:3000`.
 
 1. Create `backend/services/<service_name>/`
 2. Add `__init__.py` and `router.py` — implement `get_card() -> Service` and add `@router.post/get(...)` actions
-3. Import and register in `backend/main.py`
+3. For action endpoints that POST to an upstream service, import and use the shared helper:
+   ```python
+   from upstream import post_to_upstream
+
+   @router.post("/my-action")
+   def my_action() -> ActionResult:
+       return post_to_upstream(
+           f"{MY_SERVICE_URL}/some-endpoint",
+           headers={"X-API-Key": MY_SERVICE_API_KEY},
+       )
+   ```
+4. Import and register in `backend/main.py`
 
 ## CI/CD (Jenkins)
 

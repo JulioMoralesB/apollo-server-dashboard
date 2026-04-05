@@ -175,3 +175,10 @@
 .confirm-ok:hover {
   background: rgba(64, 156, 255, 0.1);
 }
+
+@media (max-width: 480px) {
+  .actions-grid {
+    justify-content: center;
+    gap: 20px;
+  }
+}
