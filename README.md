@@ -56,7 +56,7 @@ The Vite dev server proxies `/services` to `http://localhost:8001` automatically
 ### Prerequisites
 
 - Docker 20.10+
-- Docker Compose 1.29+
+- Docker Compose v2+
 - An existing external Docker network named `apollo-server-network`:
   ```bash
   docker network create apollo-server-network
@@ -76,7 +76,7 @@ The dashboard will be available at `http://<host>:3000`.
 
 | Variable | Default | Description |
 |---|---|---|
-| `API_KEY` | _(empty)_ | Secret key for the dashboard; leave empty to disable auth |
+| `API_KEY` | _(required)_ | Secret key for the dashboard; must be set to a non-empty value |
 | `FRONTEND_PORT` | `3000` | Host port for the dashboard |
 | `FREE_GAMES_NOTIFIER_URL` | `http://free-games-notifier:8000` | URL of the Free Games Notifier service |
 | `FREE_GAMES_NOTIFIER_API_KEY` | _(empty)_ | API key for the Free Games Notifier service |
@@ -99,7 +99,7 @@ sudo chown -R jenkins:jenkins /opt/stacks/apollo-server-dashboard
 
 Then create a Jenkins pipeline job pointing to this repository. The pipeline will build the Docker images, copy `compose.yaml` to the Dockge stack directory, and restart the stack.
 
-> **Note:** Replace `'jenkins-shared-library'` in `Jenkinsfile` with the actual name of your shared library as configured in Jenkins.
+> **Note:** Replace `'dockge-pipeline'` in `Jenkinsfile` with the actual name of your shared library as configured in Jenkins.
 
 ## License
 
