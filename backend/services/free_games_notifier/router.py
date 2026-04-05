@@ -45,7 +45,6 @@ _ACTIONS = [
     Action(label='Check Test E2E', icon='shield-cog', endpoint='/services/free-games-notifier/check-e2e/test', method='POST'),
     Action(label='Resend Test Notification', icon='send-horizontal', endpoint='/services/free-games-notifier/resend/test', method='POST'),
     Action(label='GitHub Repo', icon='github', href='https://github.com/JulioMoralesB/free-games-notifier'),
-    
 ]
 
 @router.post("/check-e2e")
