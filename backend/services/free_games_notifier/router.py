@@ -9,6 +9,7 @@ from fastapi import APIRouter
 
 import http_client
 from models import Action, Service, ActionResult
+from upstream import post_to_upstream
 
 logger = logging.getLogger(__name__)
 
@@ -28,37 +29,6 @@ _cache: dict = {}
 router = APIRouter(prefix="/services/free-games-notifier", tags=["free-games-notifier"])
 
 
-def _upstream_error(exc: httpx.HTTPStatusError) -> str:
-    """Return the 'detail' field from the upstream JSON response, or a generic HTTP error."""
-    try:
-        detail = exc.response.json().get("detail")
-        if detail:
-            return str(f"HTTP {exc.response.status_code}: {detail}")
-    except Exception:
-        pass
-    return f"HTTP {exc.response.status_code}"
-
-
-def _post_to_upstream(url: str, label: str = "", body: dict | None = None) -> ActionResult:
-    """POST to an upstream URL with the service API key and map exceptions to ActionResult."""
-    client = http_client.get()
-    tag = f" ({label})" if label else ""
-    try:
-        logger.info("POST %s%s", url, tag)
-        kwargs: dict = {"headers": {"X-API-Key": FREE_GAMES_NOTIFIER_API_KEY}}
-        if body is not None:
-            kwargs["json"] = body
-        response = client.post(url, **kwargs)
-        response.raise_for_status()
-        return ActionResult(success=True)
-    except httpx.HTTPStatusError as exc:
-        logger.warning("POST %s%s -> HTTP %s: %s", url, tag, exc.response.status_code, exc.response.text)
-        return ActionResult(success=False, message=_upstream_error(exc))
-    except httpx.RequestError as exc:
-        logger.warning("POST %s%s failed: %s", url, tag, exc)
-        return ActionResult(success=False, message="Service unreachable: " + str(exc))
-
-
 _ACTIONS = [
     Action(label='View Dashboard', icon='dashboard', href='https://free-games.apollox10.com/dashboard/'),
     Action(label='Check E2E', icon='shield-check', endpoint='/services/free-games-notifier/check-e2e', method='POST', confirm=True),
@@ -70,7 +40,10 @@ _ACTIONS = [
 
 @router.post("/check-e2e")
 def check_e2e() -> ActionResult:
-    return _post_to_upstream(f"{FREE_GAMES_NOTIFIER_URL}/check")
+    return post_to_upstream(
+        f"{FREE_GAMES_NOTIFIER_URL}/check",
+        headers={"X-API-Key": FREE_GAMES_NOTIFIER_API_KEY},
+    )
 
 
 @router.post("/check-e2e/test")
@@ -78,16 +51,20 @@ def check_e2e_test() -> ActionResult:
     if not FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL:
         logger.warning("Test webhook URL not configured")
         return ActionResult(success=False, message="Test webhook URL not configured")
-    return _post_to_upstream(
+    return post_to_upstream(
         f"{FREE_GAMES_NOTIFIER_URL}/check",
         label="test webhook",
+        headers={"X-API-Key": FREE_GAMES_NOTIFIER_API_KEY},
         body={"webhook_url": FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL},
     )
 
 
 @router.post("/resend")
 def resend_notification() -> ActionResult:
-    return _post_to_upstream(f"{FREE_GAMES_NOTIFIER_URL}/notify/discord/resend")
+    return post_to_upstream(
+        f"{FREE_GAMES_NOTIFIER_URL}/notify/discord/resend",
+        headers={"X-API-Key": FREE_GAMES_NOTIFIER_API_KEY},
+    )
 
 
 @router.post("/resend/test")
@@ -95,9 +72,10 @@ def resend_test_notification() -> ActionResult:
     if not FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL:
         logger.warning("Test webhook URL not configured")
         return ActionResult(success=False, message="Test webhook URL not configured")
-    return _post_to_upstream(
+    return post_to_upstream(
         f"{FREE_GAMES_NOTIFIER_URL}/notify/discord/resend",
         label="test webhook",
+        headers={"X-API-Key": FREE_GAMES_NOTIFIER_API_KEY},
         body={"webhook_url": FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL},
     )
 
