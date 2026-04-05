@@ -4,7 +4,7 @@ services:
       context: .
     container_name: apollo-server-dashboard
     ports:
-      - "${FRONTEND_PORT:-3000}:80"
+      - "${FRONTEND_PORT:-9902}:80"
     restart: unless-stopped
     depends_on:
       - apollo-server-dashboard-backend
