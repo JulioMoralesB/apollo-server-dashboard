@@ -7,6 +7,7 @@ function ActionPanel ({service, onClose, apiKey}) {
     const actions = service.actions || [];
     const [actionStates, setActionStates] = useState({});
     const [errorMessage, setErrorMessage] = useState(null);
+    const [pendingAction, setPendingAction] = useState(null);
 
     // Close panel on Escape key press
     useEffect(() => {
@@ -18,6 +19,25 @@ function ActionPanel ({service, onClose, apiKey}) {
     }, [onClose]);
 
     const handleAction = (action, index) => {
+        if (action.confirm) {
+            setPendingAction({ action, index });
+            return;
+        }
+        executeAction(action, index);
+    };
+
+    const handleConfirm = () => {
+        if (pendingAction) {
+            executeAction(pendingAction.action, pendingAction.index);
+            setPendingAction(null);
+        }
+    };
+
+    const handleCancel = () => {
+        setPendingAction(null);
+    };
+
+    const executeAction = (action, index) => {
         if (action.href) {
             window.open(action.href, "_blank", "noopener");
             return;
@@ -92,6 +112,17 @@ function ActionPanel ({service, onClose, apiKey}) {
             )}
             {errorMessage && (
                 <p className="action-error">{errorMessage}</p>
+            )}
+            {pendingAction && (
+                <div className="confirm-backdrop" onClick={handleCancel}>
+                    <div className="confirm-box" onClick={(e) => e.stopPropagation()}>
+                    <p className="confirm-message">Run <strong>{pendingAction.action.label}</strong>?</p>
+                    <div className="confirm-buttons">
+                        <button className="confirm-cancel" onClick={handleCancel}>Cancel</button>
+                        <button className="confirm-ok" onClick={handleConfirm}>Confirm</button>
+                    </div>
+                    </div>
+                </div>
             )}
         </div>
 )

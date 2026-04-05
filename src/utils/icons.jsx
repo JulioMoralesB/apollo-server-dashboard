@@ -1,5 +1,6 @@
 import { 
     Bell, 
+    BellRing,
     RefreshCw, 
     Play, 
     Square, 
@@ -9,12 +10,18 @@ import {
     Settings, 
     AlertTriangle,
     Send,
-    SendHorizontal 
+    SendHorizontal,
+    Pickaxe, 
+    Loader,
+    CircleAlert,
+    PackageOpen,
+
 
 } from "lucide-react"
 
 const icons = {
     "bell": Bell,
+    "bell-ring": BellRing,
     "refresh": RefreshCw,
     "play": Play,
     "stop": Square,
@@ -25,6 +32,10 @@ const icons = {
     "alert": AlertTriangle,
     "send": Send,
     "send-horizontal": SendHorizontal,
+    "pickaxe": Pickaxe,
+    "loader": Loader,
+    "error": CircleAlert,
+    "empty": PackageOpen,
 }
 
 export function getIcon(name, props = {}) {

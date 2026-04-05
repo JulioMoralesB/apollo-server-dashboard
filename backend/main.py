@@ -51,6 +51,6 @@ app.include_router(fgn_router)
 @app.get("/services", response_model=list[Service])
 def get_services() -> list[Service]:
     return [
-        minecraft_card(),
         fgn_card(),
+        minecraft_card(),
     ]

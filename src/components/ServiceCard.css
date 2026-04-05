@@ -1,41 +1,132 @@
 .service-card {
-  background-color: var(--blueishDarkGray);
+  position: relative;
+  background: var(--blueishDarkGray);
   border: 0.5px solid #2a2d30;
   border-radius: 8px;
-  padding: 14px;
-  cursor: pointer;
-  text-align: left;
-  width: 100%;
-  font: inherit;
+  padding: 16px;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  cursor: default;
+  transition: border-color 0.15s, background 0.15s;
+  animation: card-enter 0.3s ease both;
 }
 
+.service-card.clickable {
+  cursor: pointer;
+}
+
+.service-card.clickable:hover {
+  background: rgb(32, 37, 43);
+  border-color: rgba(250, 250, 255, 0.15);
+}
+
+.service-card.clickable.online:hover {
+  border-color: rgba(48, 224, 16, 0.3);
+}
+
+/* Corner decorations — solo en clickeables */
+.card-corner {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: transparent;
+  border-style: solid;
+  opacity: 0;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+
+.clickable .card-corner { opacity: 1; border-color: #2a2d30; }
+.clickable.online:hover .card-corner { border-color: rgba(48, 224, 16, 0.5); }
+
+.card-corner.top-left    { top: 5px;    left: 5px;  border-width: 1px 0 0 1px; }
+.card-corner.top-right   { top: 5px;    right: 5px; border-width: 1px 1px 0 0; }
+.card-corner.bottom-left { bottom: 5px; left: 5px;  border-width: 0 0 1px 1px; }
+.card-corner.bottom-right{ bottom: 5px; right: 5px; border-width: 0 1px 1px 0; }
+
+/* Icon */
+.card-icon {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(250, 250, 255, 0.25);
+  transition: color 0.15s;
+}
+
+.clickable:hover .card-icon { color: rgba(250, 250, 255, 0.5); }
+.online .card-icon { color: rgba(48, 224, 16, 0.3); }
+.online:hover .card-icon { color: rgba(48, 224, 16, 0.6); }
+
+/* Name */
 .service-name {
   font-family: monospace;
   font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.08em;
-  color: rgba(250, 250, 255, 0.6);
-  margin: 0 0 8px 0;
+  color: rgba(250, 250, 255, 0.85);
+  margin: 0;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* Status */
 .service-status {
   font-family: monospace;
-  font-size: 13px;
+  font-size: 11px;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.service-status.online { color: var(--green); }
+.service-status.online  { color: var(--green); }
 .service-status.offline { color: var(--red); }
 
 .dot {
   display: inline-block;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.online .dot { background-color: var(--green); }
+.online .dot {
+  background-color: var(--green);
+  box-shadow: 0 0 0 0 rgba(48, 224, 16, 0.6);
+  animation: pulse 2.5s infinite;
+}
+
 .offline .dot { background-color: var(--red); }
+
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(48, 224, 16, 0.5); }
+  70%  { box-shadow: 0 0 0 5px rgba(48, 224, 16, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(48, 224, 16, 0); }
+}
+
+/* Action count */
+.action-count {
+  font-family: monospace;
+  font-size: 10px;
+  color: rgba(250, 250, 255, 0.25);
+  margin: 0;
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

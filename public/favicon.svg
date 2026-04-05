@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="8" fill="#191d21"/>
+  <rect width="64" height="64" rx="8" fill="none" stroke="#2a2d30" stroke-width="1"/>
+
+  <line x1="8" y1="8" x2="16" y2="8" stroke="#30e010" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="8" y1="8" x2="8" y2="16" stroke="#30e010" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="56" y1="8" x2="48" y2="8" stroke="#30e010" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="56" y1="8" x2="56" y2="16" stroke="#30e010" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="8" y1="56" x2="16" y2="56" stroke="#30e010" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="8" y1="56" x2="8" y2="48" stroke="#30e010" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="56" y1="56" x2="48" y2="56" stroke="#30e010" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="56" y1="56" x2="56" y2="48" stroke="#30e010" stroke-width="1.5" stroke-linecap="round"/>
+
+  <rect x="14" y="18" width="24" height="6" rx="2" fill="#30e010" opacity="0.9"/>
+  <rect x="14" y="28" width="16" height="6" rx="2" fill="#30e010" opacity="0.55"/>
+  <rect x="14" y="38" width="20" height="6" rx="2" fill="#30e010" opacity="0.3"/>
+
+  <circle cx="46" cy="21" r="3.5" fill="#30e010"/>
+  <circle cx="46" cy="31" r="3.5" fill="#30e010" opacity="0.55"/>
+  <circle cx="46" cy="41" r="3.5" fill="#30e010" opacity="0.3"/>
+
+  <line x1="14" y1="48" x2="50" y2="48" stroke="#2a2d30" stroke-width="1"/>
+
+  <text x="32" y="62" font-family="monospace" font-size="8" font-weight="700" fill="rgba(48,224,16,0.7)" text-anchor="middle" letter-spacing="2">AX</text>
+</svg>
