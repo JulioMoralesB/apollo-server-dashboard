@@ -15,7 +15,10 @@ import {
     Loader,
     CircleAlert,
     PackageOpen,
-
+    LayoutDashboard,
+    FolderGit2,
+    ShieldCheck,
+    ShieldCog,
 
 } from "lucide-react"
 
@@ -36,6 +39,10 @@ const icons = {
     "loader": Loader,
     "error": CircleAlert,
     "empty": PackageOpen,
+    "dashboard": LayoutDashboard,
+    "github": FolderGit2,
+    "shield-check": ShieldCheck,
+    "shield-cog": ShieldCog,
 }
 
 export function getIcon(name, props = {}) {
