@@ -19,7 +19,17 @@ import {
     FolderGit2,
     ShieldCheck,
     ShieldCog,
-
+    ExternalLink,
+    Container,
+    Activity,
+    Home,
+    Cloud,
+    Server,
+    BarChart2,
+    GitBranch,
+    Bookmark,
+    Zap,
+    Network,
 } from "lucide-react"
 
 const icons = {
@@ -43,6 +53,17 @@ const icons = {
     "github": FolderGit2,
     "shield-check": ShieldCheck,
     "shield-cog": ShieldCog,
+    "external-link": ExternalLink,
+    "container": Container,
+    "activity": Activity,
+    "home": Home,
+    "cloud": Cloud,
+    "server": Server,
+    "bar-chart": BarChart2,
+    "git-branch": GitBranch,
+    "bookmark": Bookmark,
+    "zap": Zap,
+    "network": Network,
 }
 
 export function getIcon(name, props = {}) {

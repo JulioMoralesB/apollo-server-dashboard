@@ -133,6 +133,7 @@ function App() {
             name={service.name} 
             status={service.status} 
             icon={service.icon}
+            url={service.url}
             actions={service.actions}
             onClick={() => setSelectedService(service)} 
             index={index}

@@ -15,6 +15,7 @@ class Service(BaseModel):
     name: str
     status: str
     icon: str | None = None
+    url: str | None = None
     actions: list[Action] | None = None
 
 
