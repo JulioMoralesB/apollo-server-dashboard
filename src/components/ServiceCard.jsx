@@ -28,7 +28,7 @@ function ServiceCard({ name, status, icon, actions, url, onClick, index }) {
 
   return (
     <div
-      className={`service-card ${isOnline ? "online" : "offline"} ${isClickable ? "clickable" : ""} ${url && !hasActions ? "has-url" : ""}`}
+      className={`service-card ${isOnline ? "online" : isUnknown ? "unknown" : "offline"} ${isClickable ? "clickable" : ""} ${url && !hasActions ? "has-url" : ""}`}
       onClick={isClickable ? handleClick : undefined}
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
