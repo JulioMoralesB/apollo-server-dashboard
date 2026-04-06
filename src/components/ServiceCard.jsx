@@ -11,7 +11,7 @@ function ServiceCard({ name, status, icon, actions, url, onClick, index }) {
 
   const handleClick = () => {
     if (hasActions) onClick()
-    else if (url) window.open(url, "_blank")
+    else if (url) window.open(url, "_blank", "noopener,noreferrer")
   }
 
 
