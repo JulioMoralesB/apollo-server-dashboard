@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from models import Action, Service
+from models import Service
 
 router = APIRouter(prefix="/services/grafana", tags=["grafana"])
 
