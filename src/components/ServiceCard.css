@@ -14,7 +14,7 @@
   gap: 4px;
   cursor: default;
   transition: border-color 0.15s, background 0.15s;
-  animation: card-enter 0.3s ease bo th;
+  animation: card-enter 0.3s ease both;
 }
 
 .service-card.clickable {
