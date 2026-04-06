@@ -90,11 +90,7 @@
 }
 
 .online .card-icon {
-  color: rgba(48, 224, 16, 0.3);
-}
-
-.online:hover .card-icon {
-  color: rgba(48, 224, 16, 0.6);
+  color: rgba(48, 224, 16, 1);
 }
 
 /* Name */
