@@ -31,6 +31,38 @@ function App() {
     setAuthError(true)
   }
 
+  function handleSelectService(service) {
+    setSelectedService(service)
+    history.pushState({ panelOpen: true, selectedService: service }, "")
+  }
+
+  function handleClosePanel() {
+    setSelectedService(null)
+    if (window.history.state?.panelOpen) {
+      history.back()
+    }
+  }
+
+  useEffect(() => {
+    function syncSelectedServiceFromHistory(state) {
+      if (state?.panelOpen) {
+        setSelectedService(state.selectedService ?? null)
+      } else {
+        setSelectedService(null)
+      }
+    }
+
+    function handlePopState(event) {
+      syncSelectedServiceFromHistory(event.state)
+    }
+
+    syncSelectedServiceFromHistory(window.history.state)
+    window.addEventListener("popstate", handlePopState)
+    return () => {
+      window.removeEventListener("popstate", handlePopState)
+    }
+  }, [])
+
   useEffect(() => {
     const onlineCount = services.filter(s => s.status === "online").length
     document.title = services.length > 0
@@ -135,7 +167,7 @@ function App() {
             icon={service.icon}
             url={service.url}
             actions={service.actions}
-            onClick={() => setSelectedService(service)} 
+            onClick={() => handleSelectService(service)} 
             index={index}
           />
         ))}
@@ -143,7 +175,7 @@ function App() {
       {selectedService && (
         <ActionPanel 
           service={selectedService} 
-          onClose={() => setSelectedService(null)} 
+          onClose={handleClosePanel} 
           apiKey={apiKey}
         />
       )}
