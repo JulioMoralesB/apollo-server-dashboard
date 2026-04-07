@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 import ServiceCard from "./components/ServiceCard"
 import ActionPanel from "./components/ActionPanel"
 import Login from "./components/Login"
@@ -30,6 +30,26 @@ function App() {
     setLastUpdated(null)
     setAuthError(true)
   }
+
+  function handleSelectService(service) {
+    setSelectedService(service)
+    history.pushState({ panelOpen: true }, "")
+  }
+
+  function handleClosePanel() {
+    setSelectedService(null)
+    history.back()
+  }
+
+  useEffect(() => {
+    function handlePopState(event) {
+      setSelectedService(null)
+    }
+    window.addEventListener("popstate", handlePopState)
+    return () => {
+      window.removeEventListener("popstate", handlePopState)
+    }
+  }, [])
 
   useEffect(() => {
     const onlineCount = services.filter(s => s.status === "online").length
@@ -135,7 +155,7 @@ function App() {
             icon={service.icon}
             url={service.url}
             actions={service.actions}
-            onClick={() => setSelectedService(service)} 
+            onClick={() => handleSelectService(service)} 
             index={index}
           />
         ))}
@@ -143,7 +163,7 @@ function App() {
       {selectedService && (
         <ActionPanel 
           service={selectedService} 
-          onClose={() => setSelectedService(null)} 
+          onClose={handleClosePanel} 
           apiKey={apiKey}
         />
       )}
