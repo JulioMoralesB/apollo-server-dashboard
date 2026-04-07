@@ -42,7 +42,7 @@ function App() {
   }
 
   useEffect(() => {
-    function handlePopState(event) {
+    function handlePopState() {
       setSelectedService(null)
     }
     window.addEventListener("popstate", handlePopState)
