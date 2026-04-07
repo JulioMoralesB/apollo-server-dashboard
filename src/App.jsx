@@ -33,18 +33,30 @@ function App() {
 
   function handleSelectService(service) {
     setSelectedService(service)
-    history.pushState({ panelOpen: true }, "")
+    history.pushState({ panelOpen: true, selectedService: service }, "")
   }
 
   function handleClosePanel() {
     setSelectedService(null)
-    history.back()
+    if (window.history.state?.panelOpen) {
+      history.back()
+    }
   }
 
   useEffect(() => {
-    function handlePopState() {
-      setSelectedService(null)
+    function syncSelectedServiceFromHistory(state) {
+      if (state?.panelOpen) {
+        setSelectedService(state.selectedService ?? null)
+      } else {
+        setSelectedService(null)
+      }
     }
+
+    function handlePopState(event) {
+      syncSelectedServiceFromHistory(event.state)
+    }
+
+    syncSelectedServiceFromHistory(window.history.state)
     window.addEventListener("popstate", handlePopState)
     return () => {
       window.removeEventListener("popstate", handlePopState)
