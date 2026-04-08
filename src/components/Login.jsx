@@ -3,10 +3,11 @@ import "./Login.css"
 
 function Login({ onLogin, error }) {
   const [key, setKey] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (key.trim()) onLogin(key.trim())
+    if (key.trim()) onLogin(key.trim(), rememberMe)
   }
 
   return (
@@ -20,6 +21,14 @@ function Login({ onLogin, error }) {
           onChange={(e) => setKey(e.target.value)}
           autoFocus
         />
+        <label className="remember-me">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+          />
+          Remember me
+        </label>
         <button type="submit">Enter</button>
         {error && <p className="login-error">Invalid API Key</p>}
       </form>

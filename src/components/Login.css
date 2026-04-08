@@ -64,6 +64,21 @@
   opacity: 0.85;
 }
 
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(250, 250, 255, 0.5);
+  font-family: monospace;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.remember-me input[type="checkbox"] {
+  accent-color: var(--blueishWhite);
+  cursor: pointer;
+}
+
 .login-error {
   color: var(--red);
   font-family: monospace;
