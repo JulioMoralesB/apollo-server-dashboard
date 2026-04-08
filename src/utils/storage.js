@@ -3,7 +3,8 @@ const memoryStore = {}
 function safeGet(storage, key) {
   try {
     return storage.getItem(key)
-  } catch {
+  } catch (err) {
+    console.error("Storage read failed, falling back to memory:", err)
     return memoryStore[key] ?? null
   }
 }
@@ -11,7 +12,8 @@ function safeGet(storage, key) {
 function safeSet(storage, key, value) {
   try {
     storage.setItem(key, value)
-  } catch {
+  } catch (err) {
+    console.error("Storage write failed, falling back to memory:", err)
     memoryStore[key] = value
   }
 }
@@ -19,7 +21,8 @@ function safeSet(storage, key, value) {
 function safeRemove(storage, key) {
   try {
     storage.removeItem(key)
-  } catch {
+  } catch (err) {
+    console.error("Storage remove failed, falling back to memory:", err)
     delete memoryStore[key]
   }
 }
