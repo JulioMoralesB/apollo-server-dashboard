@@ -12,18 +12,18 @@ function App() {
   const [error, setError] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [selectedService, setSelectedService] = useState(null)
-  const [apiKey, setApiKey] = useState(() => sessionStorage.getItem("apiKey") || "")
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem("apiKey") || "")
   const [authError, setAuthError] = useState(false)
 
   const handleLogin = (key) => {
     setLoading(true)
     setApiKey(key)
-    sessionStorage.setItem("apiKey", key)
+    localStorage.setItem("apiKey", key)
   }
 
   const handleLogout = () => {
     setApiKey("")
-    sessionStorage.removeItem("apiKey")
+    localStorage.removeItem("apiKey")
     setSelectedService(null)
     setServices([])
     setError(null)
