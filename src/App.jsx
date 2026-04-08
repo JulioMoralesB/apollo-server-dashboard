@@ -3,6 +3,7 @@ import ServiceCard from "./components/ServiceCard"
 import ActionPanel from "./components/ActionPanel"
 import Login from "./components/Login"
 import { getIcon } from "./utils/icons"
+import { safeLocalStorage, safeSessionStorage } from "./utils/storage"
 
 const REFRESH_INTERVAL_MS = 30_000
 
@@ -12,18 +13,25 @@ function App() {
   const [error, setError] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [selectedService, setSelectedService] = useState(null)
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem("apiKey") || "")
+  const [apiKey, setApiKey] = useState(
+    () => safeLocalStorage.getItem("apiKey") || safeSessionStorage.getItem("apiKey") || ""
+  )
   const [authError, setAuthError] = useState(false)
 
-  const handleLogin = (key) => {
+  const handleLogin = (key, rememberMe) => {
     setLoading(true)
     setApiKey(key)
-    localStorage.setItem("apiKey", key)
+    if (rememberMe) {
+      safeLocalStorage.setItem("apiKey", key)
+    } else {
+      safeSessionStorage.setItem("apiKey", key)
+    }
   }
 
   const handleLogout = () => {
     setApiKey("")
-    localStorage.removeItem("apiKey")
+    safeLocalStorage.removeItem("apiKey")
+    safeSessionStorage.removeItem("apiKey")
     setSelectedService(null)
     setServices([])
     setError(null)
