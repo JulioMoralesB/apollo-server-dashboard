@@ -1,0 +1,104 @@
+# Services without actions
+- name: jenkins
+  # Icons are provided by Lucide — choose any icon at https://lucide.dev/icons
+  icon: hand-platter
+  url: http://localhost:8080
+  # All monitoring fields are optional. Omit 'monitor: true' to disable monitoring.
+  monitor: true
+  monitor-interval: 60 # seconds (default: 60)
+  monitor-timeout: 5 # seconds (default: 5)
+  monitor-retries: 3 # retries before marking down (default: 3)
+  # Required when monitor is true
+  monitor-url: http://localhost:8080/login
+  monitor-expect-status: 200 # expected HTTP status code (default: 200)
+  monitor-expect-body: "Jenkins" # expected string in the response body (optional)
+  
+
+# Docker services without actions
+- name: uptime-kuma
+  icon: activity 
+  url: http://localhost:3001
+  docker-container: uptime-kuma
+  monitor: true
+  monitor-interval: 60
+  monitor-timeout: 5
+  monitor-retries: 3
+  # Use Docker health status instead of HTTP monitoring (optional, default: false)
+  use-docker-health: false
+  # Required when monitor is true and use-docker-health is false
+  monitor-url: http://localhost:3001/api/status
+  monitor-expect-status: 200 # expected HTTP status code (default: 200)
+  monitor-expect-body: "OK" # expected string in the response body (optional)
+
+# Services with actions
+- name: minecraft
+  # When a service has actions, the main button will bring up a menu of actions instead of opening a link.
+  # To add a clickable button, include an action with method "href".
+  icon: pickaxe
+  actions:
+    - label: Dashboard
+      icon: layout-dashboard
+      endpoint: http://localhost:8080/minecraft/dashboard
+      method: href
+    - label: Stop
+      icon: square-x
+      endpoint: http://localhost:8080/minecraft/stop
+      method: POST # possible values: href, GET, POST, PUT, DELETE, PATCH
+      body: { force: true } # optional body to send with the request
+      confirm: true # show a confirmation dialog before performing the action
+    - label: Restart
+      icon: rotate-cw
+      endpoint: http://localhost:8080/minecraft/restart
+      method: POST
+      confirm: true # show a confirmation dialog before performing the action
+  monitor: true
+  monitor-interval: 60
+  monitor-timeout: 5
+  monitor-retries: 3
+  monitor-url: http://localhost:8080/minecraft/status
+  monitor-expect-status: 200
+  monitor-expect-body: "running"
+
+# Docker services with actions
+- name: free-games-notifier
+  icon: bell-ring
+  docker-container: free-games-notifier
+  actions:
+    - label: Dashboard
+      icon: layout-dashboard
+      endpoint: http://localhost:8080/free-games-notifier/dashboard
+      method: href
+    - label: GitHub
+      icon: folder-git-2
+      endpoint: http://localhost:8080/free-games-notifier/github
+      method: href
+    - label: E2E Trigger
+      icon: shield-check
+      endpoint: http://localhost:8080/free-games-notifier/e2e
+      method: POST
+      confirm: true 
+    - label: Resend Notification
+      icon: send
+      endpoint: http://localhost:8080/free-games-notifier/resend
+      method: POST
+      confirm: true
+    - label: E2E Trigger Test
+      icon: shield-cog
+      endpoint: http://localhost:8080/free-games-notifier/e2e
+      method: POST
+      body: { test: true }
+      confirm: false
+    - label: Resend Notification Test
+      icon: send
+      endpoint: http://localhost:8080/free-games-notifier/resend
+      method: POST
+      # No confirm field — action is performed immediately without a confirmation dialog
+      body: { test: true }
+  monitor: true
+  monitor-interval: 60
+  monitor-timeout: 5
+  monitor-retries: 3
+  # When true, Docker health status is used and HTTP monitoring parameters are ignored and need not be provided. (optional, default: false)
+  use-docker-health: true
+
+
