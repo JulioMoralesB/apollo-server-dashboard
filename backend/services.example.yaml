@@ -12,11 +12,11 @@
   monitor-url: http://localhost:8080/login
   monitor-expect-status: 200 # expected HTTP status code (default: 200)
   monitor-expect-body: "Jenkins" # expected string in the response body (optional)
-  
+
 
 # Docker services without actions
 - name: uptime-kuma
-  icon: activity 
+  icon: activity
   url: http://localhost:3001
   docker-container: uptime-kuma
   monitor: true
