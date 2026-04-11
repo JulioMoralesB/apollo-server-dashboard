@@ -76,7 +76,7 @@
       icon: shield-check
       endpoint: http://localhost:8080/free-games-notifier/e2e
       method: POST
-      confirm: true 
+      confirm: true
     - label: Resend Notification
       icon: send
       endpoint: http://localhost:8080/free-games-notifier/resend
