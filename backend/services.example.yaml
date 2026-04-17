@@ -40,7 +40,7 @@
   actions:
     - label: Dashboard
       icon: layout-dashboard
-      endpoint: /minecraft/dashboard
+      endpoint: http://localhost:8080/minecraft/dashboard
       method: href
     - label: Stop
       icon: square-x
