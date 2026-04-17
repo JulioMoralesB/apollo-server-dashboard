@@ -20,6 +20,9 @@ services:
       - FREE_GAMES_NOTIFIER_URL=${FREE_GAMES_NOTIFIER_URL:-http://free-games-notifier:8000}
       - FREE_GAMES_NOTIFIER_API_KEY=${FREE_GAMES_NOTIFIER_API_KEY:-}
       - FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL=${FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL:-}
+      - SERVICES_CONFIG=${SERVICES_CONFIG:-/app/config/services.yaml}
+    volumes:
+      - ./config:/app/config
     restart: unless-stopped
     networks:
       - apollo-server-network

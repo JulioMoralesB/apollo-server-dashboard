@@ -22,15 +22,38 @@ _services: list[YamlService] = []
 _ENV_VAR_RE = re.compile(r"\$\{(\w+)\}")
 
 
-def _interpolate(value: Any) -> Any:
-    """Replace ${VAR_NAME} references with their environment variable values."""
+def _interpolate_inner(value: Any, missing: set[str]) -> Any:
+    """Recursively substitute ${VAR_NAME} placeholders, collecting missing variable names."""
     if isinstance(value, str):
-        return _ENV_VAR_RE.sub(lambda m: os.getenv(m.group(1), m.group(0)), value)
+        def _replace(m: re.Match) -> str:
+            var = m.group(1)
+            env_val = os.getenv(var)
+            if env_val is None:
+                missing.add(var)
+                return m.group(0)
+            return env_val
+
+        return _ENV_VAR_RE.sub(_replace, value)
     if isinstance(value, dict):
-        return {k: _interpolate(v) for k, v in value.items()}
+        return {k: _interpolate_inner(v, missing) for k, v in value.items()}
     if isinstance(value, list):
-        return [_interpolate(item) for item in value]
+        return [_interpolate_inner(item, missing) for item in value]
     return value
+
+
+def _interpolate(value: Any) -> Any:
+    """Replace ${VAR_NAME} references with environment variable values.
+
+    Raises ValueError listing all unresolved placeholders if any env vars are missing.
+    """
+    missing: set[str] = set()
+    result = _interpolate_inner(value, missing)
+    if missing:
+        raise ValueError(
+            "Undefined environment variable(s) referenced in config: "
+            + ", ".join(sorted(missing))
+        )
+    return result
 
 
 def _bootstrap_config(config_path: Path) -> None:
