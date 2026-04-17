@@ -100,4 +100,4 @@ def load_config() -> None:
 
 
 def get_services() -> list[YamlService]:
-    return _services
+    return list(_services)
