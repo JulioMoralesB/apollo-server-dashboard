@@ -10,6 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+RUN mkdir -p /app/config && chown appuser:appuser /app/config
+
 USER appuser
 
 EXPOSE 8001
