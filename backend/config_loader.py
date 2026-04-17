@@ -84,7 +84,12 @@ def load_config() -> None:
             services.append(YamlService.model_validate(_interpolate(item)))
         except ValidationError as e:
             name = item.get("name", f"item #{i}") if isinstance(item, dict) else f"item #{i}"
-            errors.append(f"  Service '{name}':\n" + "\n".join(f"    - {err['msg']}" for err in e.errors()))
+            formatted_errors = []
+            for err in e.errors():
+                loc = err.get("loc", ())
+                path = ".".join(str(part) for part in loc) if loc else "<root>"
+                formatted_errors.append(f"    - {path}: {err['msg']}")
+            errors.append(f"  Service '{name}':\n" + "\n".join(formatted_errors))
 
     if errors:
         raise ValueError("Invalid service definitions in config:\n" + "\n".join(errors))
