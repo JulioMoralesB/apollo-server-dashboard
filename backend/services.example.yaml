@@ -70,7 +70,7 @@
   # action-headers are sent with every action request for this service.
   # Use ${ENV_VAR} to reference environment variables — values are never hardcoded.
   action-headers:
-    X-API-Key: ${MY_SERVICE_API_KEY}
+    X-API-Key: API-KEY-1234 # You can add environment variables in the .env file and reference them here for better security, e.g. X-API-Key: ${FREE_GAMES_NOTIFIER_API_KEY}
   actions:
     - label: Dashboard
       icon: layout-dashboard
@@ -95,7 +95,7 @@
       endpoint: /trigger
       method: POST
       body:
-        webhook_url: ${MY_SERVICE_TEST_WEBHOOK_URL}
+        webhook_url: MY_SERVICE_TEST_WEBHOOK_URL_1234 # You can add environment variables in the .env file and reference them here for better security, e.g. webhook_url: ${FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL}
       confirm: false
     - label: Resend Notification (test)
       icon: send
@@ -103,7 +103,7 @@
       method: POST
       # No confirm field — action is performed immediately without a confirmation dialog
       body:
-        webhook_url: ${MY_SERVICE_TEST_WEBHOOK_URL}
+        webhook_url: MY_SERVICE_TEST_WEBHOOK_URL_1234 # You can add environment variables in the .env file and reference them here for better security, e.g. webhook_url: ${FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL}
   monitor: true
   monitor-interval: 60
   monitor-timeout: 5
