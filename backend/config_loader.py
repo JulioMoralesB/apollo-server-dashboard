@@ -50,13 +50,22 @@ def _bootstrap_config(config_path: Path) -> None:
 
 
 def load_config() -> None:
-    config_path = Path(os.getenv("SERVICES_CONFIG", DEFAULT_CONFIG_PATH))
+    config_env = os.getenv("SERVICES_CONFIG")
+    config_path = Path(config_env.strip()) if config_env and config_env.strip() else DEFAULT_CONFIG_PATH
 
     if not config_path.exists():
         _bootstrap_config(config_path)
 
+    if not config_path.is_file():
+        raise ValueError(f"Configuration path '{config_path}' is not a file.")
+
     try:
-        raw = yaml.safe_load(config_path.read_text())
+        raw_text = config_path.read_text()
+    except OSError as e:
+        raise ValueError(f"Failed to read '{config_path}': {e}") from e
+
+    try:
+        raw = yaml.safe_load(raw_text)
     except yaml.YAMLError as e:
         raise ValueError(f"Failed to parse '{config_path}': {e}") from e
 
