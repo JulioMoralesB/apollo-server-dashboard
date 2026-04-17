@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,7 @@ from yaml_models import YamlService
 logger = logging.getLogger(__name__)
 
 DEFAULT_CONFIG_PATH = Path(__file__).parent / "services.yaml"
+EXAMPLE_PATH = Path(__file__).parent / "services.example.yaml"
 
 _services: list[YamlService] = []
 
@@ -29,14 +31,29 @@ def _interpolate(value: Any) -> Any:
     return value
 
 
+def _bootstrap_config(config_path: Path) -> None:
+    """Copy services.example.yaml to config_path and raise with setup instructions."""
+    try:
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(EXAMPLE_PATH, config_path)
+        raise FileNotFoundError(
+            f"No services.yaml found — a template has been created at:\n"
+            f"  {config_path}\n"
+            "Edit it with your services and restart."
+        )
+    except PermissionError:
+        raise FileNotFoundError(
+            f"No services.yaml found and could not create one automatically.\n"
+            f"Create it manually:\n"
+            f"  cp {EXAMPLE_PATH} {config_path}"
+        )
+
+
 def load_config() -> None:
     config_path = Path(os.getenv("SERVICES_CONFIG", DEFAULT_CONFIG_PATH))
 
     if not config_path.exists():
-        raise FileNotFoundError(
-            f"Services config file not found: {config_path}\n"
-            "Create it by copying services.example.yaml and adjusting the values."
-        )
+        _bootstrap_config(config_path)
 
     try:
         raw = yaml.safe_load(config_path.read_text())
