@@ -12,8 +12,10 @@ from yaml_models import YamlService
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CONFIG_PATH = Path(__file__).parent / "services.yaml"
-EXAMPLE_PATH = Path(__file__).parent / "services.example.yaml"
+_BACKEND_DIR = Path(__file__).resolve().parent
+_PROJECT_ROOT = _BACKEND_DIR.parent
+DEFAULT_CONFIG_PATH = _PROJECT_ROOT / "config" / "services.yaml"
+EXAMPLE_PATH = _BACKEND_DIR / "services.example.yaml"
 
 _services: list[YamlService] = []
 
