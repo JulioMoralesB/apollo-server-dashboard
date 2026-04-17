@@ -35,20 +35,22 @@
   # When a service has actions, the main button will bring up a menu of actions instead of opening a link.
   # To add a clickable button, include an action with method "href".
   icon: pickaxe
+  # action-url is the base URL prepended to all action endpoints (except href actions).
+  action-url: http://localhost:8080
   actions:
     - label: Dashboard
       icon: layout-dashboard
-      endpoint: http://localhost:8080/minecraft/dashboard
+      endpoint: /minecraft/dashboard
       method: href
     - label: Stop
       icon: square-x
-      endpoint: http://localhost:8080/minecraft/stop
+      endpoint: /minecraft/stop
       method: POST # possible values: href, GET, POST, PUT, DELETE, PATCH
       body: { force: true } # optional body to send with the request
       confirm: true # show a confirmation dialog before performing the action
     - label: Restart
       icon: rotate-cw
-      endpoint: http://localhost:8080/minecraft/restart
+      endpoint: /minecraft/restart
       method: POST
       confirm: true # show a confirmation dialog before performing the action
   monitor: true
@@ -59,46 +61,52 @@
   monitor-expect-status: 200
   monitor-expect-body: "running"
 
-# Docker services with actions
+# Docker services with actions and custom headers
 - name: free-games-notifier
   icon: bell-ring
   docker-container: free-games-notifier
+  # action-url is the base URL prepended to all action endpoints (except href actions).
+  action-url: http://localhost:8001
+  # action-headers are sent with every action request for this service.
+  # Use ${ENV_VAR} to reference environment variables — values are never hardcoded.
+  action-headers:
+    X-API-Key: ${MY_SERVICE_API_KEY}
   actions:
     - label: Dashboard
       icon: layout-dashboard
-      endpoint: http://localhost:8080/free-games-notifier/dashboard
+      endpoint: https://example.com/dashboard
       method: href
     - label: GitHub
       icon: folder-git-2
-      endpoint: http://localhost:8080/free-games-notifier/github
+      endpoint: https://github.com/example/repo
       method: href
-    - label: E2E Trigger
+    - label: Trigger
       icon: shield-check
-      endpoint: http://localhost:8080/free-games-notifier/e2e
+      endpoint: /trigger
       method: POST
       confirm: true
     - label: Resend Notification
       icon: send
-      endpoint: http://localhost:8080/free-games-notifier/resend
+      endpoint: /notify/resend
       method: POST
       confirm: true
-    - label: E2E Trigger Test
+    - label: Trigger (test)
       icon: shield-cog
-      endpoint: http://localhost:8080/free-games-notifier/e2e
+      endpoint: /trigger
       method: POST
-      body: { test: true }
+      body:
+        webhook_url: ${MY_SERVICE_TEST_WEBHOOK_URL}
       confirm: false
-    - label: Resend Notification Test
+    - label: Resend Notification (test)
       icon: send
-      endpoint: http://localhost:8080/free-games-notifier/resend
+      endpoint: /notify/resend
       method: POST
       # No confirm field — action is performed immediately without a confirmation dialog
-      body: { test: true }
+      body:
+        webhook_url: ${MY_SERVICE_TEST_WEBHOOK_URL}
   monitor: true
   monitor-interval: 60
   monitor-timeout: 5
   monitor-retries: 3
-  # When true, Docker health status is used and HTTP monitoring parameters are ignored and need not be provided. (optional, default: false)
+  # When true, Docker health status is used and HTTP monitoring parameters are ignored. (optional, default: false)
   use-docker-health: true
-
-

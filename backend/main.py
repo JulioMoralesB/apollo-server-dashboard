@@ -8,6 +8,7 @@ from fastapi.security import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
 
 import http_client
+import config_loader
 from models import Service
 
 from services.free_games_notifier import get_card as fgn_card
@@ -68,6 +69,7 @@ def verify_api_key(api_key: str = Security(api_key_header)):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    config_loader.load_config()
     http_client.init()
     yield
     http_client.close()
