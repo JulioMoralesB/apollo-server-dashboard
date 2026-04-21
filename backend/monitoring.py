@@ -14,7 +14,7 @@ def get_status(name: str) -> str:
     return _status_cache.get(name, "unknown")
 
 
-async def _check_one(svc: YamlService) -> None:
+async def _check_http(svc: YamlService) -> None:
     url = svc.monitor_url
     try:
         async with httpx.AsyncClient(timeout=svc.monitor_timeout) as client:
@@ -36,21 +36,42 @@ async def _check_one(svc: YamlService) -> None:
         _status_cache[svc.name] = "offline"
 
 
+async def _check_docker(svc: YamlService) -> None:
+    try:
+        from docker_client import get_container_status
+        status = await asyncio.to_thread(get_container_status, svc.docker_container)
+        _status_cache[svc.name] = status
+        logger.debug("Docker monitor %s -> %s", svc.name, status)
+    except Exception as exc:
+        logger.warning("Docker check failed for '%s': %s", svc.name, exc)
+        _status_cache[svc.name] = "unknown"
+
+
 async def run_monitoring_loop(services: list[YamlService]) -> None:
-    monitorable = [s for s in services if s.monitor and not s.use_docker_health and s.monitor_url]
-    if not monitorable:
-        logger.info("No HTTP-monitorable services configured — monitoring loop idle")
+    http_services = [s for s in services if s.monitor and not s.use_docker_health and s.monitor_url]
+    docker_services = [s for s in services if s.monitor and s.use_docker_health and s.docker_container]
+
+    if not http_services and not docker_services:
+        logger.info("No monitorable services configured — monitoring loop idle")
         return
 
-    logger.info("Starting monitoring loop for: %s", [s.name for s in monitorable])
+    logger.info(
+        "Starting monitoring loop — HTTP: %s, Docker: %s",
+        [s.name for s in http_services],
+        [s.name for s in docker_services],
+    )
     last_check: dict[str, float] = {}
 
     while True:
         now = asyncio.get_event_loop().time()
         pending = []
-        for svc in monitorable:
+        for svc in http_services:
             if now - last_check.get(svc.name, 0) >= svc.monitor_interval:
-                pending.append(_check_one(svc))
+                pending.append(_check_http(svc))
+                last_check[svc.name] = now
+        for svc in docker_services:
+            if now - last_check.get(svc.name, 0) >= svc.monitor_interval:
+                pending.append(_check_docker(svc))
                 last_check[svc.name] = now
         if pending:
             await asyncio.gather(*pending, return_exceptions=True)
