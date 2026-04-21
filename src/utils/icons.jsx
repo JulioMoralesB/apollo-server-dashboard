@@ -1,73 +1,26 @@
-import { 
-    Bell, 
-    BellRing,
-    RefreshCw, 
-    Play, 
-    Square, 
-    RotateCcw, 
-    Terminal, 
-    Globe, 
-    Settings, 
-    AlertTriangle,
-    Send,
-    SendHorizontal,
-    Pickaxe, 
-    Loader,
-    CircleAlert,
-    PackageOpen,
-    LayoutDashboard,
-    FolderGit2,
-    ShieldCheck,
-    ShieldCog,
-    ExternalLink,
-    Container,
-    Activity,
-    Home,
-    Cloud,
-    Server,
-    BarChart2,
-    GitBranch,
-    Bookmark,
-    Zap,
-    Network,
-} from "lucide-react"
+import * as LucideIcons from "lucide-react"
 
-const icons = {
-    "bell": Bell,
-    "bell-ring": BellRing,
-    "refresh": RefreshCw,
-    "play": Play,
-    "stop": Square,
-    "restart": RotateCcw,
-    "terminal": Terminal,
-    "globe": Globe,
-    "settings": Settings,
-    "alert": AlertTriangle,
-    "send": Send,
-    "send-horizontal": SendHorizontal,
-    "pickaxe": Pickaxe,
-    "loader": Loader,
-    "error": CircleAlert,
-    "empty": PackageOpen,
-    "dashboard": LayoutDashboard,
-    "github": FolderGit2,
-    "shield-check": ShieldCheck,
-    "shield-cog": ShieldCog,
-    "external-link": ExternalLink,
-    "container": Container,
-    "activity": Activity,
-    "home": Home,
-    "cloud": Cloud,
-    "server": Server,
-    "bar-chart": BarChart2,
-    "git-branch": GitBranch,
-    "bookmark": Bookmark,
-    "zap": Zap,
-    "network": Network,
+// Names that don't directly match a Lucide icon (kebab-case → PascalCase would fail)
+const ALIASES = {
+    "dashboard":  "LayoutDashboard",
+    "github":     "FolderGit2",
+    "bar-chart":  "BarChart2",
+    "error":      "CircleAlert",
+    "empty":      "PackageOpen",
+    "refresh":    "RefreshCw",
+    "stop":       "Square",
+    "restart":    "RotateCcw",
+    "alert":      "AlertTriangle",
+}
+
+function toPascalCase(str) {
+    return str.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("")
 }
 
 export function getIcon(name, props = {}) {
-    const Icon = icons[name]
+    if (!name) return null
+    const pascalName = ALIASES[name] ?? toPascalCase(name)
+    const Icon = LucideIcons[pascalName]
     if (!Icon) return null
     return <Icon size={16} {...props} />
 }
