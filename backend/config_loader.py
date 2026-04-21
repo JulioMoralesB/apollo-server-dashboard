@@ -118,7 +118,10 @@ def load_config() -> None:
             errors.append(f"  Service '{name}':\n" + "\n".join(formatted_errors))
 
     if errors:
-        raise ValueError("Invalid service definitions in config:\n" + "\n".join(errors))
+        logger.warning(
+            "Skipping %d invalid service(s) from %s:\n%s",
+            len(errors), config_path, "\n".join(errors),
+        )
 
     global _services
     _services = services
