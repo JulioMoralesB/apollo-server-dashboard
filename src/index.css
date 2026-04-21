@@ -80,6 +80,21 @@ h1 {
   flex-shrink: 0;
 }
 
+.icon-btn {
+  background: none;
+  border: none;
+  color: rgba(250, 250, 255, 0.3);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.icon-btn:hover {
+  color: var(--blueishWhite);
+}
+
 .logout-btn {
   background: none;
   border: 0.5px solid #2a2d30;

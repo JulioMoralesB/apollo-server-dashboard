@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import ServiceCard from "./components/ServiceCard"
 import ActionPanel from "./components/ActionPanel"
+import AdminPanel from "./components/AdminPanel"
 import Login from "./components/Login"
 import { getIcon } from "./utils/icons"
 import { safeLocalStorage, safeSessionStorage } from "./utils/storage"
@@ -17,6 +18,7 @@ function App() {
     () => safeLocalStorage.getItem("apiKey") || safeSessionStorage.getItem("apiKey") || ""
   )
   const [authError, setAuthError] = useState(false)
+  const [adminOpen, setAdminOpen] = useState(false)
 
   const handleLogin = (key, rememberMe) => {
     setLoading(true)
@@ -141,6 +143,9 @@ function App() {
               Synced {lastUpdated.toLocaleTimeString()}
             </span>
           )}
+          <button className="icon-btn" onClick={() => setAdminOpen(true)} title="Config">
+            {getIcon("settings", { size: 16 })}
+          </button>
           <button className="logout-btn" onClick={handleLogout}>
             Logout
           </button>
@@ -181,9 +186,15 @@ function App() {
         ))}
       </div>
       {selectedService && (
-        <ActionPanel 
-          service={selectedService} 
-          onClose={handleClosePanel} 
+        <ActionPanel
+          service={selectedService}
+          onClose={handleClosePanel}
+          apiKey={apiKey}
+        />
+      )}
+      {adminOpen && (
+        <AdminPanel
+          onClose={() => setAdminOpen(false)}
           apiKey={apiKey}
         />
       )}
