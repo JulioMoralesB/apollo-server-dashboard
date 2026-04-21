@@ -102,8 +102,8 @@
     font-size: 13px;
     font-weight: 700;
     color: var(--blueishWhite);
-    width: 160px;
-    flex-shrink: 0;
+    flex: 1;
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -248,4 +248,21 @@
 
 .confirm-ok.danger:hover {
     background: rgba(255, 16, 64, 0.1);
+}
+
+@media (max-width: 540px) {
+    .admin-backdrop {
+        padding: 16px;
+    }
+
+    .admin-row-url,
+    .admin-row-actions {
+        display: none;
+    }
+}
+
+@media (max-width: 360px) {
+    .admin-btn {
+        padding: 5px 8px;
+    }
 }
