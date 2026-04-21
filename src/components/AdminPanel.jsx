@@ -3,11 +3,12 @@ import { getIcon } from "../utils/icons"
 import ServiceForm from "./ServiceForm"
 import "./AdminPanel.css"
 
-function AdminPanel({ onClose, apiKey }) {
+function AdminPanel({ onClose, apiKey, onConfigChanged }) {
     const [config, setConfig] = useState(null)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState(null)
+    const [formError, setFormError] = useState(null)
     const [editingIndex, setEditingIndex] = useState(null) // null=list, "new"=add, number=edit
     const [deleteIndex, setDeleteIndex] = useState(null)
 
@@ -27,6 +28,7 @@ function AdminPanel({ onClose, apiKey }) {
     function putConfig(updated) {
         setSaving(true)
         setError(null)
+        setFormError(null)
         return fetch("/config", {
             method: "PUT",
             headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
@@ -36,20 +38,23 @@ function AdminPanel({ onClose, apiKey }) {
                 if (!res.ok) return res.json().then(d => { throw new Error(d.detail || res.statusText) })
                 return res.json()
             })
-            .then(data => { setConfig(data); setSaving(false) })
-            .catch(err => { setError(err.message); setSaving(false) })
+            .then(data => { setConfig(data); setSaving(false); onConfigChanged?.() })
+            .catch(err => { setSaving(false); throw err })
     }
 
     function handleSave(service) {
         const updated = editingIndex === "new"
             ? [...config, service]
             : config.map((s, i) => i === editingIndex ? service : s)
-        putConfig(updated).then(() => setEditingIndex(null))
+        putConfig(updated)
+            .then(() => setEditingIndex(null))
+            .catch(err => setFormError(err.message))
     }
 
     function handleDelete(index) {
         putConfig(config.filter((_, i) => i !== index))
             .then(() => setDeleteIndex(null))
+            .catch(err => setError(err.message))
     }
 
     if (editingIndex !== null) {
@@ -59,6 +64,7 @@ function AdminPanel({ onClose, apiKey }) {
                 onSave={handleSave}
                 onCancel={() => setEditingIndex(null)}
                 saving={saving}
+                error={formError}
             />
         )
     }
