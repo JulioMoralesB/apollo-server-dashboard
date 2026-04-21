@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/services': 'http://localhost:8001',
+      '/config': 'http://localhost:8001',
     },
   },
 })
