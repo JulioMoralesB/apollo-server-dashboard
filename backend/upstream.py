@@ -29,6 +29,7 @@ def call_upstream(
     label: str = "",
     headers: dict | None = None,
     body: dict | None = None,
+    timeout: float | None = None,
 ) -> ActionResult:
     """Call an upstream service with any HTTP method and map exceptions to ActionResult."""
     client = http_client.get()
@@ -41,6 +42,8 @@ def call_upstream(
             kwargs["headers"] = headers
         if body is not None:
             kwargs["json"] = body
+        if timeout is not None:
+            kwargs["timeout"] = timeout
         response = client.request(method_upper, url, **kwargs)
         response.raise_for_status()
         return ActionResult(success=True)

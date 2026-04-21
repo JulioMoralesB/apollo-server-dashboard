@@ -3,6 +3,7 @@ import re
 
 from fastapi import APIRouter
 from models import Action, ActionResult, Service
+from monitoring import get_status
 from upstream import call_upstream
 from yaml_models import YamlService
 
@@ -31,16 +32,16 @@ def yaml_to_card(svc: YamlService) -> Service:
                 ))
     return Service(
         name=svc.name,
-        status="unknown",
+        status=get_status(svc.name),
         icon=svc.icon or "server",
         url=svc.url,
         actions=actions or None,
     )
 
 
-def _make_handler(url: str, method: str, label: str, headers: dict | None, body: dict | None):
+def _make_handler(url: str, method: str, label: str, headers: dict | None, body: dict | None, timeout: float):
     def handler() -> ActionResult:
-        return call_upstream(url, method=method, label=label, headers=headers, body=body)
+        return call_upstream(url, method=method, label=label, headers=headers, body=body, timeout=timeout)
     return handler
 
 
@@ -62,7 +63,7 @@ def build_config_router(services: list[YamlService]) -> APIRouter:
             upstream_url = svc.action_url.rstrip("/") + action.endpoint
             path = f"/services/{slug}/actions/{_slug(action.label)}"
             headers = dict(svc.action_headers) if svc.action_headers else None
-            handler = _make_handler(upstream_url, action.method, action.label, headers, action.body)
+            handler = _make_handler(upstream_url, action.method, action.label, headers, action.body, svc.action_timeout)
             router.add_api_route(path, handler, methods=[action.method.upper()], response_model=ActionResult)
-            logger.info("Registered %s %s -> %s", action.method.upper(), path, upstream_url)
+            logger.info("Registered %s %s -> %s (timeout=%ss)", action.method.upper(), path, upstream_url, svc.action_timeout)
     return router

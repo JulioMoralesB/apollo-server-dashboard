@@ -17,6 +17,7 @@ class YamlService(BaseModel):
     url: str | None = None
     action_url: str | None = None
     action_headers: dict[str, str] | None = None
+    action_timeout: int = 30
     docker_container: str | None = None
     monitor: bool = False
     monitor_interval: int = 60
