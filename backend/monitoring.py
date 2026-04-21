@@ -1,0 +1,57 @@
+import asyncio
+import logging
+
+import httpx
+
+from yaml_models import YamlService
+
+logger = logging.getLogger(__name__)
+
+_status_cache: dict[str, str] = {}
+
+
+def get_status(name: str) -> str:
+    return _status_cache.get(name, "unknown")
+
+
+async def _check_one(svc: YamlService) -> None:
+    url = svc.monitor_url
+    try:
+        async with httpx.AsyncClient(timeout=svc.monitor_timeout) as client:
+            for attempt in range(svc.monitor_retries + 1):
+                try:
+                    resp = await client.get(url)
+                    ok = resp.status_code == svc.monitor_expect_status
+                    if ok and svc.monitor_expect_body:
+                        ok = svc.monitor_expect_body in resp.text
+                    _status_cache[svc.name] = "online" if ok else "offline"
+                    logger.debug("Monitor %s -> %s", svc.name, _status_cache[svc.name])
+                    return
+                except httpx.RequestError:
+                    if attempt < svc.monitor_retries:
+                        await asyncio.sleep(1)
+            _status_cache[svc.name] = "offline"
+    except Exception as exc:
+        logger.warning("Monitor check failed for '%s': %s", svc.name, exc)
+        _status_cache[svc.name] = "offline"
+
+
+async def run_monitoring_loop(services: list[YamlService]) -> None:
+    monitorable = [s for s in services if s.monitor and not s.use_docker_health and s.monitor_url]
+    if not monitorable:
+        logger.info("No HTTP-monitorable services configured — monitoring loop idle")
+        return
+
+    logger.info("Starting monitoring loop for: %s", [s.name for s in monitorable])
+    last_check: dict[str, float] = {}
+
+    while True:
+        now = asyncio.get_event_loop().time()
+        pending = []
+        for svc in monitorable:
+            if now - last_check.get(svc.name, 0) >= svc.monitor_interval:
+                pending.append(_check_one(svc))
+                last_check[svc.name] = now
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+        await asyncio.sleep(10)

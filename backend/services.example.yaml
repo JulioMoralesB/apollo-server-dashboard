@@ -37,6 +37,8 @@
   icon: pickaxe
   # action-url is the base URL prepended to all action endpoints (except href actions).
   action-url: http://localhost:8080
+  # action-timeout: seconds to wait for an action response (default: 30)
+  action-timeout: 30
   actions:
     - label: Dashboard
       icon: layout-dashboard

@@ -7,10 +7,13 @@ from fastapi import FastAPI, HTTPException, Security, status
 from fastapi.security import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
 
+import asyncio
+
 import http_client
 import config_loader
 from config_service import build_config_router, yaml_to_card
 from models import Service
+from monitoring import run_monitoring_loop
 
 load_dotenv()
 
@@ -38,8 +41,15 @@ def verify_api_key(api_key: str = Security(api_key_header)):
 async def lifespan(app: FastAPI):
     config_loader.load_config()
     http_client.init()
-    app.include_router(build_config_router(config_loader.get_services()))
+    services = config_loader.get_services()
+    app.include_router(build_config_router(services))
+    monitor_task = asyncio.create_task(run_monitoring_loop(services))
     yield
+    monitor_task.cancel()
+    try:
+        await monitor_task
+    except asyncio.CancelledError:
+        pass
     http_client.close()
 
 
