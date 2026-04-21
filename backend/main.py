@@ -14,6 +14,7 @@ import config_loader
 from config_service import build_config_router, yaml_to_card
 from models import Service
 from monitoring import run_monitoring_loop
+from yaml_models import YamlService
 
 load_dotenv()
 
@@ -58,7 +59,7 @@ app = FastAPI(lifespan=lifespan, dependencies=[Security(verify_api_key)])
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -66,3 +67,14 @@ app.add_middleware(
 @app.get("/services", response_model=list[Service])
 def get_services() -> list[Service]:
     return [yaml_to_card(svc) for svc in config_loader.get_services()]
+
+
+@app.get("/config", response_model=list[YamlService])
+def get_config() -> list[YamlService]:
+    return config_loader.get_services()
+
+
+@app.put("/config", response_model=list[YamlService])
+def put_config(services: list[YamlService]) -> list[YamlService]:
+    config_loader.save_config(services)
+    return config_loader.get_services()
