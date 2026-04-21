@@ -18,6 +18,7 @@ DEFAULT_CONFIG_PATH = _PROJECT_ROOT / "config" / "services.yaml"
 EXAMPLE_PATH = _BACKEND_DIR / "services.example.yaml"
 
 _services: list[YamlService] = []
+_config_path: Path = DEFAULT_CONFIG_PATH
 
 _ENV_VAR_RE = re.compile(r"\$\{(\w+)\}")
 
@@ -75,8 +76,10 @@ def _bootstrap_config(config_path: Path) -> None:
 
 
 def load_config() -> None:
+    global _config_path
     config_env = os.getenv("SERVICES_CONFIG")
     config_path = Path(config_env.strip()) if config_env and config_env.strip() else DEFAULT_CONFIG_PATH
+    _config_path = config_path
 
     if not config_path.exists():
         _bootstrap_config(config_path)
@@ -124,3 +127,25 @@ def load_config() -> None:
 
 def get_services() -> list[YamlService]:
     return list(_services)
+
+
+def _to_yaml_dict(svc: YamlService) -> dict:
+    raw = svc.model_dump(exclude_none=True)
+
+    def _rename(obj: Any) -> Any:
+        if isinstance(obj, dict):
+            return {k.replace("_", "-"): _rename(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [_rename(item) for item in obj]
+        return obj
+
+    return _rename(raw)
+
+
+def save_config(services: list[YamlService]) -> None:
+    data = [_to_yaml_dict(svc) for svc in services]
+    yaml_text = yaml.dump(data, default_flow_style=False, allow_unicode=True, sort_keys=False)
+    _config_path.write_text(yaml_text)
+    global _services
+    _services = services
+    logger.info("Saved %d service(s) to %s", len(_services), _config_path)
