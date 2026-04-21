@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import ServiceCard from "./components/ServiceCard"
 import ActionPanel from "./components/ActionPanel"
 import AdminPanel from "./components/AdminPanel"
@@ -19,6 +19,7 @@ function App() {
   )
   const [authError, setAuthError] = useState(false)
   const [adminOpen, setAdminOpen] = useState(false)
+  const fetchServicesRef = useRef(null)
 
   const handleLogin = (key, rememberMe) => {
     setLoading(true)
@@ -113,6 +114,7 @@ function App() {
         })
     }
 
+    fetchServicesRef.current = fetchServices
     fetchServices()
 
     const intervalId = setInterval(fetchServices, REFRESH_INTERVAL_MS)
@@ -196,6 +198,7 @@ function App() {
         <AdminPanel
           onClose={() => setAdminOpen(false)}
           apiKey={apiKey}
+          onConfigChanged={() => fetchServicesRef.current?.()}
         />
       )}
       

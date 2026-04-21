@@ -43,9 +43,20 @@ function formToAction(action) {
     return { ...action, body }
 }
 
-function ServiceForm({ service, onSave, onCancel, saving }) {
+function ServiceForm({ service, onSave, onCancel, saving, error }) {
     const init = service
-        ? { ...service, action_headers: service.action_headers || {}, actions: (service.actions || []).map(actionToForm) }
+        ? {
+            ...EMPTY_SERVICE,
+            ...service,
+            icon: service.icon ?? "",
+            url: service.url ?? "",
+            action_url: service.action_url ?? "",
+            docker_container: service.docker_container ?? "",
+            monitor_url: service.monitor_url ?? "",
+            monitor_expect_body: service.monitor_expect_body ?? "",
+            action_headers: service.action_headers ?? {},
+            actions: (service.actions ?? []).map(actionToForm),
+          }
         : { ...EMPTY_SERVICE }
 
     const [form, setForm] = useState(init)
@@ -251,6 +262,7 @@ function ServiceForm({ service, onSave, onCancel, saving }) {
                 </div>
 
                 <div className="form-footer">
+                    {error && <span className="form-footer-error">{error}</span>}
                     <button type="button" className="confirm-cancel" onClick={onCancel}>Cancel</button>
                     <button type="submit" className="confirm-ok" disabled={saving}>
                         {saving ? "Saving…" : "Save"}
