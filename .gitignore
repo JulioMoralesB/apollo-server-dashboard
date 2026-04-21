@@ -33,4 +33,4 @@ backend/env/
 .env
 
 # Services config (contains internal URLs — use services.example.yaml as reference)
-backend/services.yaml
+config/services.yaml

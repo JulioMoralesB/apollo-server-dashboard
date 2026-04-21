@@ -23,40 +23,39 @@ def _upstream_error(exc: httpx.HTTPStatusError) -> str:
     return f"HTTP {exc.response.status_code}"
 
 
+def call_upstream(
+    url: str,
+    method: str = "POST",
+    label: str = "",
+    headers: dict | None = None,
+    body: dict | None = None,
+) -> ActionResult:
+    """Call an upstream service with any HTTP method and map exceptions to ActionResult."""
+    client = http_client.get()
+    tag = f" ({label})" if label else ""
+    method_upper = method.upper()
+    try:
+        logger.info("%s %s%s", method_upper, url, tag)
+        kwargs: dict = {}
+        if headers is not None:
+            kwargs["headers"] = headers
+        if body is not None:
+            kwargs["json"] = body
+        response = client.request(method_upper, url, **kwargs)
+        response.raise_for_status()
+        return ActionResult(success=True)
+    except httpx.HTTPStatusError as exc:
+        logger.warning("%s %s%s -> HTTP %s: %s", method_upper, url, tag, exc.response.status_code, exc.response.text)
+        return ActionResult(success=False, message=_upstream_error(exc))
+    except httpx.RequestError as exc:
+        logger.warning("%s %s%s failed: %s", method_upper, url, tag, exc)
+        return ActionResult(success=False, message="Service unreachable: " + str(exc))
+
+
 def post_to_upstream(
     url: str,
     label: str = "",
     headers: dict | None = None,
     body: dict | None = None,
 ) -> ActionResult:
-    """POST to an upstream service URL and map exceptions to ActionResult.
-
-    Args:
-        url: Full URL to POST to.
-        label: Optional context tag appended to log messages (e.g. "test webhook").
-        headers: Optional HTTP headers to include in the request.
-        body: Optional JSON body to send with the request.
-
-    Returns:
-        ActionResult with ``success=True`` when the upstream returns a 2xx response.
-        ActionResult with ``success=False`` and a ``message`` describing the error
-        when the upstream returns a non-2xx status or the request fails entirely.
-    """
-    client = http_client.get()
-    tag = f" ({label})" if label else ""
-    try:
-        logger.info("POST %s%s", url, tag)
-        kwargs: dict = {}
-        if headers is not None:
-            kwargs["headers"] = headers
-        if body is not None:
-            kwargs["json"] = body
-        response = client.post(url, **kwargs)
-        response.raise_for_status()
-        return ActionResult(success=True)
-    except httpx.HTTPStatusError as exc:
-        logger.warning("POST %s%s -> HTTP %s: %s", url, tag, exc.response.status_code, exc.response.text)
-        return ActionResult(success=False, message=_upstream_error(exc))
-    except httpx.RequestError as exc:
-        logger.warning("POST %s%s failed: %s", url, tag, exc)
-        return ActionResult(success=False, message="Service unreachable: " + str(exc))
+    return call_upstream(url, method="POST", label=label, headers=headers, body=body)
