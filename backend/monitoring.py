@@ -3,6 +3,7 @@ import logging
 
 import httpx
 
+import config_loader
 from yaml_models import YamlService
 
 logger = logging.getLogger(__name__)
@@ -47,22 +48,14 @@ async def _check_docker(svc: YamlService) -> None:
         _status_cache[svc.name] = "unknown"
 
 
-async def run_monitoring_loop(services: list[YamlService]) -> None:
-    http_services = [s for s in services if s.monitor and not s.use_docker_health and s.monitor_url]
-    docker_services = [s for s in services if s.monitor and s.use_docker_health and s.docker_container]
-
-    if not http_services and not docker_services:
-        logger.info("No monitorable services configured — monitoring loop idle")
-        return
-
-    logger.info(
-        "Starting monitoring loop — HTTP: %s, Docker: %s",
-        [s.name for s in http_services],
-        [s.name for s in docker_services],
-    )
+async def run_monitoring_loop() -> None:
     last_check: dict[str, float] = {}
 
     while True:
+        services = config_loader.get_services()
+        http_services = [s for s in services if s.monitor and not s.use_docker_health and s.monitor_url]
+        docker_services = [s for s in services if s.monitor and s.use_docker_health and s.docker_container]
+
         now = asyncio.get_event_loop().time()
         pending = []
         for svc in http_services:

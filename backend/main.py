@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
     http_client.init()
     services = config_loader.get_services()
     app.include_router(build_config_router(services))
-    monitor_task = asyncio.create_task(run_monitoring_loop(services))
+    monitor_task = asyncio.create_task(run_monitoring_loop())
     yield
     monitor_task.cancel()
     try:
