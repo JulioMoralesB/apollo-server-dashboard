@@ -1,0 +1,250 @@
+.form-backdrop {
+    position: fixed;
+    inset: 0;
+    background: var(--darkGray);
+    z-index: 110;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.service-form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 24px;
+}
+
+.form-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+.form-header h2 {
+    font-family: monospace;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--blueishWhite);
+    margin: 0;
+}
+
+.form-body {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-bottom: 8px;
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-section h3 {
+    font-family: monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(250, 250, 255, 0.3);
+    margin: 0;
+    padding-bottom: 6px;
+    border-bottom: 0.5px solid #2a2d30;
+}
+
+.form-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.form-row .field {
+    flex: 1;
+    min-width: 140px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.field-label {
+    font-family: monospace;
+    font-size: 10px;
+    color: rgba(250, 250, 255, 0.35);
+    letter-spacing: 0.05em;
+}
+
+.field input,
+.field textarea,
+.field select {
+    background: var(--blueishDarkGray);
+    border: 0.5px solid #2a2d30;
+    border-radius: 6px;
+    color: var(--blueishWhite);
+    font-family: monospace;
+    font-size: 12px;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+    border-color: var(--blue);
+}
+
+.field textarea {
+    resize: vertical;
+    min-height: 54px;
+}
+
+.field select {
+    appearance: none;
+    cursor: pointer;
+}
+
+.field-error {
+    font-family: monospace;
+    font-size: 10px;
+    color: var(--red);
+}
+
+.icon-input {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--blueishDarkGray);
+    border: 0.5px solid #2a2d30;
+    border-radius: 6px;
+    transition: border-color 0.15s;
+}
+
+.icon-input:focus-within {
+    border-color: var(--blue);
+}
+
+.icon-preview {
+    padding: 0 8px;
+    color: rgba(250, 250, 255, 0.4);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    min-width: 30px;
+    justify-content: center;
+}
+
+.icon-input input {
+    border: none;
+    background: transparent;
+    flex: 1;
+    padding: 8px 10px 8px 0;
+}
+
+.icon-input input:focus {
+    border: none;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--blueishWhite);
+    cursor: pointer;
+}
+
+.toggle-label.small {
+    font-size: 11px;
+    color: rgba(250, 250, 255, 0.6);
+}
+
+.toggle-label input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--blue);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* Action blocks */
+.action-form-block {
+    background: var(--blueishDarkGray);
+    border: 0.5px solid #2a2d30;
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.action-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.action-form-num {
+    font-family: monospace;
+    font-size: 11px;
+    color: rgba(250, 250, 255, 0.3);
+}
+
+.action-remove-btn {
+    background: none;
+    border: 0.5px solid rgba(255, 80, 80, 0.3);
+    border-radius: 5px;
+    color: rgba(255, 80, 80, 0.5);
+    font-family: monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.action-remove-btn:hover {
+    border-color: var(--red);
+    color: var(--red);
+}
+
+.add-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    background: none;
+    border: 0.5px dashed #2a2d30;
+    border-radius: 6px;
+    color: rgba(250, 250, 255, 0.3);
+    font-family: monospace;
+    font-size: 11px;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.add-action-btn:hover {
+    border-color: rgba(250, 250, 255, 0.2);
+    color: rgba(250, 250, 255, 0.6);
+}
+
+.form-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 16px;
+    flex-shrink: 0;
+    border-top: 0.5px solid #2a2d30;
+    margin-top: 8px;
+}
