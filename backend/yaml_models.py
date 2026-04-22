@@ -24,6 +24,7 @@ class YamlService(BaseModel):
     monitor_timeout: int = 5
     monitor_retries: int = 3
     monitor_url: str | None = None
+    monitor_headers: dict[str, str] | None = None
     monitor_expect_status: int = 200
     monitor_expect_body: str | None = None
     use_docker_health: bool = False

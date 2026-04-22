@@ -9,7 +9,7 @@ const EMPTY_ACTION = { label: "", icon: "", endpoint: "", method: "POST", body: 
 const EMPTY_SERVICE = {
     name: "", icon: "", url: "", action_url: "", action_timeout: 30,
     action_headers: {}, docker_container: "",
-    monitor: false, monitor_url: "", monitor_interval: 60, monitor_timeout: 5,
+    monitor: false, monitor_url: "", monitor_headers: {}, monitor_interval: 60, monitor_timeout: 5,
     monitor_retries: 3, monitor_expect_status: 200, monitor_expect_body: "",
     use_docker_health: false, actions: [],
 }
@@ -55,12 +55,14 @@ function ServiceForm({ service, onSave, onCancel, saving, error }) {
             monitor_url: service.monitor_url ?? "",
             monitor_expect_body: service.monitor_expect_body ?? "",
             action_headers: service.action_headers ?? {},
+            monitor_headers: service.monitor_headers ?? {},
             actions: (service.actions ?? []).map(actionToForm),
           }
         : { ...EMPTY_SERVICE }
 
     const [form, setForm] = useState(init)
     const [headersText, setHeadersText] = useState(headersToText(init.action_headers))
+    const [monitorHeadersText, setMonitorHeadersText] = useState(headersToText(init.monitor_headers))
     const [errors, setErrors] = useState({})
 
     function set(field, value) {
@@ -110,6 +112,7 @@ function ServiceForm({ service, onSave, onCancel, saving, error }) {
             docker_container: form.docker_container.trim() || null,
             monitor_url: form.monitor_url.trim() || null,
             monitor_expect_body: form.monitor_expect_body.trim() || null,
+            monitor_headers: textToHeaders(monitorHeadersText) || null,
             action_headers: textToHeaders(headersText) || null,
             actions: form.actions.length ? form.actions.map(formToAction) : null,
         }
@@ -186,6 +189,14 @@ function ServiceForm({ service, onSave, onCancel, saving, error }) {
                                     <>
                                         <Field label="Monitor URL *">
                                             <input value={form.monitor_url} onChange={e => set("monitor_url", e.target.value)} placeholder="https://service.example.com/health" />
+                                        </Field>
+                                        <Field label="Monitor headers (one per line: Key: Value)">
+                                            <textarea
+                                                rows={2}
+                                                value={monitorHeadersText}
+                                                onChange={e => setMonitorHeadersText(e.target.value)}
+                                                placeholder="Authorization: Bearer eyJ..."
+                                            />
                                         </Field>
                                         <div className="form-row">
                                             <Field label="Interval (s)">
