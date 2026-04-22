@@ -29,7 +29,9 @@ async def _check_http(svc: YamlService) -> None:
                     _status_cache[svc.name] = "online" if ok else "offline"
                     logger.debug("Monitor %s -> %s", svc.name, _status_cache[svc.name])
                     return
-                except httpx.RequestError:
+                except httpx.RequestError as exc:
+                    logger.warning("Monitor request failed for '%s' (attempt %d/%d): %s",
+                                   svc.name, attempt + 1, svc.monitor_retries + 1, exc)
                     if attempt < svc.monitor_retries:
                         await asyncio.sleep(1)
             _status_cache[svc.name] = "offline"
