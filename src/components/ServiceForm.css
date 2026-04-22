@@ -149,10 +149,31 @@
     background: transparent;
     flex: 1;
     padding: 8px 10px 8px 0;
+    min-width: 0;
 }
 
 .icon-input input:focus {
     border: none;
+}
+
+.icon-browse-btn {
+    background: none;
+    border: none;
+    border-left: 0.5px solid #2a2d30;
+    color: rgba(250, 250, 255, 0.25);
+    cursor: pointer;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    transition: color 0.15s, background 0.15s;
+    border-radius: 0 6px 6px 0;
+    flex-shrink: 0;
+}
+
+.icon-browse-btn:hover {
+    color: var(--blue);
+    background: rgba(64, 156, 255, 0.08);
 }
 
 .toggle-label {

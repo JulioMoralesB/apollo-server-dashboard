@@ -22,9 +22,11 @@ function ActionPanel ({service, onClose, apiKey}) {
 
     // Clear all pending timeouts on unmount
     useEffect(() => {
+        const errorTimeout = errorTimeoutRef
+        const stateTimeouts = stateTimeoutsRef
         return () => {
-            if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
-            Object.values(stateTimeoutsRef.current).forEach(clearTimeout);
+            if (errorTimeout.current) clearTimeout(errorTimeout.current);
+            Object.values(stateTimeouts.current).forEach(clearTimeout);
         };
     }, []);
 

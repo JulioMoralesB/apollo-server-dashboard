@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { getIcon } from "../utils/icons"
+import IconPicker from "./IconPicker"
 import "./ServiceForm.css"
 
 const METHODS = ["href", "GET", "POST", "PUT", "DELETE", "PATCH"]
@@ -64,6 +65,8 @@ function ServiceForm({ service, onSave, onCancel, saving, error }) {
     const [headersText, setHeadersText] = useState(headersToText(init.action_headers))
     const [monitorHeadersText, setMonitorHeadersText] = useState(headersToText(init.monitor_headers))
     const [errors, setErrors] = useState({})
+    // pickerFor: null=closed | "service-icon" | { actionIndex: number }
+    const [pickerFor, setPickerFor] = useState(null)
 
     function set(field, value) {
         setForm(f => ({ ...f, [field]: value }))
@@ -139,6 +142,9 @@ function ServiceForm({ service, onSave, onCancel, saving, error }) {
                                 <div className="icon-input">
                                     <span className="icon-preview">{getIcon(form.icon, { size: 14 })}</span>
                                     <input value={form.icon} onChange={e => set("icon", e.target.value)} placeholder="server" />
+                                    <button type="button" className="icon-browse-btn" onClick={() => setPickerFor("service-icon")} title="Browse icons">
+                                        {getIcon("layout-grid", { size: 12 })}
+                                    </button>
                                 </div>
                             </Field>
                         </div>
@@ -240,6 +246,9 @@ function ServiceForm({ service, onSave, onCancel, saving, error }) {
                                         <div className="icon-input">
                                             <span className="icon-preview">{getIcon(action.icon, { size: 14 })}</span>
                                             <input value={action.icon} onChange={e => setAction(i, "icon", e.target.value)} placeholder="play" />
+                                            <button type="button" className="icon-browse-btn" onClick={() => setPickerFor({ actionIndex: i })} title="Browse icons">
+                                                {getIcon("layout-grid", { size: 12 })}
+                                            </button>
                                         </div>
                                     </Field>
                                 </div>
@@ -280,6 +289,17 @@ function ServiceForm({ service, onSave, onCancel, saving, error }) {
                     </button>
                 </div>
             </form>
+
+            {pickerFor !== null && (
+                <IconPicker
+                    value={pickerFor === "service-icon" ? form.icon : form.actions[pickerFor.actionIndex]?.icon ?? ""}
+                    onChange={kebab => {
+                        if (pickerFor === "service-icon") set("icon", kebab)
+                        else setAction(pickerFor.actionIndex, "icon", kebab)
+                    }}
+                    onClose={() => setPickerFor(null)}
+                />
+            )}
         </div>
     )
 }

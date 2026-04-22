@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { getIcon } from "../utils/icons"
 import ServiceForm from "./ServiceForm"
 import "./AdminPanel.css"
@@ -12,6 +12,14 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
     const [editingIndex, setEditingIndex] = useState(null) // null=list, "new"=add, number=edit
     const [deleteIndex, setDeleteIndex] = useState(null)
 
+    const handleCancelEdit = useCallback(() => {
+        if (window.history.state?.editingIndex !== undefined) {
+            history.back()
+        } else {
+            setEditingIndex(null)
+        }
+    }, [])
+
     useEffect(() => {
         const handleKey = (e) => {
             if (e.key === "Escape") {
@@ -21,7 +29,7 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
         }
         window.addEventListener("keydown", handleKey)
         return () => window.removeEventListener("keydown", handleKey)
-    }, [onClose, editingIndex])
+    }, [onClose, editingIndex, handleCancelEdit])
 
     // Sync editingIndex from browser history (back/forward navigation)
     useEffect(() => {
@@ -63,14 +71,6 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
         setEditingIndex(index)
         setFormError(null)
         history.pushState({ adminOpen: true, editingIndex: index }, "")
-    }
-
-    function handleCancelEdit() {
-        if (window.history.state?.editingIndex !== undefined) {
-            history.back()
-        } else {
-            setEditingIndex(null)
-        }
     }
 
     function handleSave(service) {
