@@ -54,20 +54,29 @@ function App() {
     }
   }
 
+  function handleOpenAdmin() {
+    setAdminOpen(true)
+    history.pushState({ adminOpen: true }, "")
+  }
+
+  function handleCloseAdmin() {
+    setAdminOpen(false)
+    if (window.history.state?.adminOpen) {
+      history.back()
+    }
+  }
+
   useEffect(() => {
-    function syncSelectedServiceFromHistory(state) {
-      if (state?.panelOpen) {
-        setSelectedService(state.selectedService ?? null)
-      } else {
-        setSelectedService(null)
-      }
+    function syncStateFromHistory(state) {
+      setSelectedService(state?.panelOpen ? (state.selectedService ?? null) : null)
+      setAdminOpen(state?.adminOpen ?? false)
     }
 
     function handlePopState(event) {
-      syncSelectedServiceFromHistory(event.state)
+      syncStateFromHistory(event.state)
     }
 
-    syncSelectedServiceFromHistory(window.history.state)
+    syncStateFromHistory(window.history.state)
     window.addEventListener("popstate", handlePopState)
     return () => {
       window.removeEventListener("popstate", handlePopState)
@@ -145,7 +154,7 @@ function App() {
               Synced {lastUpdated.toLocaleTimeString()}
             </span>
           )}
-          <button className="icon-btn" onClick={() => setAdminOpen(true)} title="Config">
+          <button className="icon-btn" onClick={handleOpenAdmin} title="Config">
             {getIcon("settings", { size: 16 })}
           </button>
           <button className="logout-btn" onClick={handleLogout}>
@@ -196,7 +205,7 @@ function App() {
       )}
       {adminOpen && (
         <AdminPanel
-          onClose={() => setAdminOpen(false)}
+          onClose={handleCloseAdmin}
           apiKey={apiKey}
           onConfigChanged={() => fetchServicesRef.current?.()}
         />
