@@ -22,3 +22,5 @@ class Service(BaseModel):
 class ActionResult(BaseModel):
     success: bool
     message: str | None = None
+    status_code: int | None = None
+    body: str | None = None
