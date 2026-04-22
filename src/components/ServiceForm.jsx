@@ -5,7 +5,7 @@ import "./ServiceForm.css"
 
 const METHODS = ["href", "GET", "POST", "PUT", "DELETE", "PATCH"]
 
-const EMPTY_ACTION = { label: "", icon: "", endpoint: "", method: "POST", body: "", confirm: false }
+const EMPTY_ACTION = { label: "", icon: "", endpoint: "", method: "POST", body: "", confirm: false, show_response: false }
 
 const EMPTY_SERVICE = {
     name: "", icon: "", url: "", action_url: "", action_timeout: 30,
@@ -267,10 +267,16 @@ function ServiceForm({ service, onSave, onCancel, saving, error }) {
                                         <textarea rows={2} value={action.body} onChange={e => setAction(i, "body", e.target.value)} placeholder='{"key": "value"}' />
                                     </Field>
                                     <Field label="">
-                                        <label className="toggle-label small" style={{ marginTop: 20 }}>
-                                            <input type="checkbox" checked={action.confirm} onChange={e => setAction(i, "confirm", e.target.checked)} />
-                                            Require confirm
-                                        </label>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20 }}>
+                                            <label className="toggle-label small">
+                                                <input type="checkbox" checked={action.confirm} onChange={e => setAction(i, "confirm", e.target.checked)} />
+                                                Require confirm
+                                            </label>
+                                            <label className="toggle-label small">
+                                                <input type="checkbox" checked={action.show_response ?? false} onChange={e => setAction(i, "show_response", e.target.checked)} />
+                                                Show response
+                                            </label>
+                                        </div>
                                     </Field>
                                 </div>
                             </div>

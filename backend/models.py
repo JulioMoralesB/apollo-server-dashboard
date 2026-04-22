@@ -8,6 +8,7 @@ class Action(BaseModel):
     endpoint: str | None = None  # API action
     method: str | None = None    # GET, POST, …
     confirm: bool = False
+    show_response: bool = False  # show API response body after action
 
 
 class Service(BaseModel):

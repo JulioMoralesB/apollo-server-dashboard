@@ -133,11 +133,15 @@ function ActionPanel({ service, onClose, apiKey }) {
                 const { data } = result;
                 const success = data?.success ?? result.ok;
                 setActionStates((prev) => ({ ...prev, [index]: success ? "success" : "error" }));
-                setLastResult({ label: action.label, data: data ?? {} });
+                if (action.show_response) {
+                    setLastResult({ label: action.label, data: data ?? {} });
+                }
             })
             .catch((err) => {
                 setActionStates((prev) => ({ ...prev, [index]: "error" }));
-                setLastResult({ label: action.label, data: { success: false, message: err.message } });
+                if (action.show_response) {
+                    setLastResult({ label: action.label, data: { success: false, message: err.message } });
+                }
             })
             .finally(() => {
                 if (stateTimeoutsRef.current[index]) clearTimeout(stateTimeoutsRef.current[index]);

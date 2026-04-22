@@ -9,6 +9,16 @@ class YamlAction(BaseModel):
     method: str
     body: dict[str, Any] | None = None
     confirm: bool = False
+    show_response: bool = False
+
+    model_config = {"populate_by_name": True}
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_keys(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        return {k.replace("-", "_"): v for k, v in data.items()}
 
 
 class YamlService(BaseModel):
