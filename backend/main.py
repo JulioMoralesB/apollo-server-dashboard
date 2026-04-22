@@ -42,8 +42,7 @@ def verify_api_key(api_key: str = Security(api_key_header)):
 async def lifespan(app: FastAPI):
     config_loader.load_config()
     http_client.init()
-    services = config_loader.get_services()
-    app.include_router(build_config_router(services))
+    app.include_router(build_config_router())
     monitor_task = asyncio.create_task(run_monitoring_loop())
     yield
     monitor_task.cancel()
