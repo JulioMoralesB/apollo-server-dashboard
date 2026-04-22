@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { Fragment, useCallback, useEffect, useState } from "react"
 import { getIcon } from "../utils/icons"
 import ServiceForm from "./ServiceForm"
 import "./AdminPanel.css"
@@ -11,6 +11,11 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
     const [formError, setFormError] = useState(null)
     const [editingIndex, setEditingIndex] = useState(null) // null=list, "new"=add, number=edit
     const [deleteIndex, setDeleteIndex] = useState(null)
+
+    // dragIndex: which row is being dragged
+    // dropIndex: insertion point (0…n, "insert before this index")
+    const [dragIndex, setDragIndex] = useState(null)
+    const [dropIndex, setDropIndex] = useState(null)
 
     const handleCancelEdit = useCallback(() => {
         if (window.history.state?.editingIndex !== undefined) {
@@ -31,7 +36,6 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
         return () => window.removeEventListener("keydown", handleKey)
     }, [onClose, editingIndex, handleCancelEdit])
 
-    // Sync editingIndex from browser history (back/forward navigation)
     useEffect(() => {
         function handlePopState(e) {
             if (e.state?.adminOpen) {
@@ -91,6 +95,66 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
             .catch(err => setError(err.message))
     }
 
+    // ── Reorder helpers ──────────────────────────────────────────────────────
+
+    function applyReorder(from, to) {
+        if (from === to || from === to - 1) return // no change
+        const reordered = [...config]
+        const [moved] = reordered.splice(from, 1)
+        // After removing `from`, indices after it shift down by 1
+        const adjustedTo = from < to ? to - 1 : to
+        reordered.splice(adjustedTo, 0, moved)
+        putConfig(reordered).catch(err => setError(err.message))
+    }
+
+    // Desktop: HTML5 Drag API ─────────────────────────────────────────────────
+
+    function handleDragStart(e, i) {
+        if (saving) { e.preventDefault(); return }
+        setDragIndex(i)
+        e.dataTransfer.effectAllowed = "move"
+    }
+
+    function handleDragOver(e, i) {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = "move"
+        const rect = e.currentTarget.getBoundingClientRect()
+        const isTopHalf = e.clientY < rect.top + rect.height / 2
+        setDropIndex(isTopHalf ? i : i + 1)
+    }
+
+    function handleDrop(e) {
+        e.preventDefault()
+        if (dragIndex !== null && dropIndex !== null) applyReorder(dragIndex, dropIndex)
+    }
+
+    function handleDragEnd() {
+        setDragIndex(null)
+        setDropIndex(null)
+    }
+
+    // Mobile: up/down buttons ─────────────────────────────────────────────────
+
+    function moveItem(from, direction) {
+        const to = from + direction
+        if (to < 0 || to >= config.length) return
+        const reordered = [...config]
+        const [moved] = reordered.splice(from, 1)
+        reordered.splice(to, 0, moved)
+        putConfig(reordered).catch(err => setError(err.message))
+    }
+
+    // ── Indicator logic ───────────────────────────────────────────────────────
+
+    function shouldShowIndicator(i) {
+        if (dragIndex === null || dropIndex !== i) return false
+        // No-op positions: inserting before self or right after self
+        if (dropIndex === dragIndex || dropIndex === dragIndex + 1) return false
+        return true
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     if (editingIndex !== null) {
         return (
             <ServiceForm
@@ -122,27 +186,69 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
             )}
 
             {!loading && config && (
-                <div className="admin-list">
+                <div
+                    className="admin-list"
+                    onDragLeave={(e) => {
+                        // Clear drop indicator when leaving the list entirely
+                        if (!e.currentTarget.contains(e.relatedTarget)) setDropIndex(null)
+                    }}
+                >
                     {config.map((svc, i) => (
-                        <div key={i} className="admin-row">
-                            <span className="admin-row-icon">
-                                {getIcon(svc.icon, { size: 16 })}
-                            </span>
-                            <span className="admin-row-name">{svc.name}</span>
-                            <span className="admin-row-url">{svc.url || svc.action_url || "—"}</span>
-                            <span className="admin-row-actions">
-                                {svc.actions?.length ? `${svc.actions.length} action${svc.actions.length > 1 ? "s" : ""}` : ""}
-                            </span>
-                            <div className="admin-row-btns">
-                                <button className="admin-btn edit" onClick={() => handleOpenEdit(i)} disabled={saving}>
-                                    Edit
-                                </button>
-                                <button className="admin-btn delete" onClick={() => setDeleteIndex(i)} disabled={saving}>
-                                    Delete
-                                </button>
+                        <Fragment key={i}>
+                            {shouldShowIndicator(i) && <div className="drop-indicator" />}
+                            <div
+                                className={`admin-row${dragIndex === i ? " is-dragging" : ""}`}
+                                draggable={!saving}
+                                onDragStart={(e) => handleDragStart(e, i)}
+                                onDragOver={(e) => handleDragOver(e, i)}
+                                onDrop={handleDrop}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <span className="drag-handle" title="Drag to reorder">
+                                    {getIcon("grip-vertical", { size: 14 })}
+                                </span>
+                                <span className="admin-row-icon">
+                                    {getIcon(svc.icon, { size: 16 })}
+                                </span>
+                                <span className="admin-row-name">{svc.name}</span>
+                                <span className="admin-row-url">{svc.url || svc.action_url || "—"}</span>
+                                <span className="admin-row-actions">
+                                    {svc.actions?.length ? `${svc.actions.length} action${svc.actions.length > 1 ? "s" : ""}` : ""}
+                                </span>
+                                <div className="admin-row-btns">
+                                    {/* Mobile: up/down buttons */}
+                                    <button
+                                        className="admin-btn move"
+                                        onClick={() => moveItem(i, -1)}
+                                        disabled={saving || i === 0}
+                                        title="Move up"
+                                        aria-label="Move up"
+                                    >
+                                        {getIcon("chevron-up", { size: 13 })}
+                                    </button>
+                                    <button
+                                        className="admin-btn move"
+                                        onClick={() => moveItem(i, 1)}
+                                        disabled={saving || i === config.length - 1}
+                                        title="Move down"
+                                        aria-label="Move down"
+                                    >
+                                        {getIcon("chevron-down", { size: 13 })}
+                                    </button>
+                                    <button className="admin-btn edit" onClick={() => handleOpenEdit(i)} disabled={saving}>
+                                        Edit
+                                    </button>
+                                    <button className="admin-btn delete" onClick={() => setDeleteIndex(i)} disabled={saving}>
+                                        Delete
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        </Fragment>
                     ))}
+                    {/* Bottom drop zone: insert after last item */}
+                    {dragIndex !== null && dropIndex === config.length && dragIndex !== config.length - 1 && (
+                        <div className="drop-indicator" />
+                    )}
                 </div>
             )}
 
