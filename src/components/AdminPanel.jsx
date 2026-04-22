@@ -13,10 +13,27 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
     const [deleteIndex, setDeleteIndex] = useState(null)
 
     useEffect(() => {
-        const handleKey = (e) => { if (e.key === "Escape") onClose() }
+        const handleKey = (e) => {
+            if (e.key === "Escape") {
+                if (editingIndex !== null) handleCancelEdit()
+                else onClose()
+            }
+        }
         window.addEventListener("keydown", handleKey)
         return () => window.removeEventListener("keydown", handleKey)
-    }, [onClose])
+    }, [onClose, editingIndex])
+
+    // Sync editingIndex from browser history (back/forward navigation)
+    useEffect(() => {
+        function handlePopState(e) {
+            if (e.state?.adminOpen) {
+                setEditingIndex(e.state.editingIndex ?? null)
+                setFormError(null)
+            }
+        }
+        window.addEventListener("popstate", handlePopState)
+        return () => window.removeEventListener("popstate", handlePopState)
+    }, [])
 
     useEffect(() => {
         fetch("/config", { headers: { "X-API-Key": apiKey } })
@@ -42,12 +59,29 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
             .catch(err => { setSaving(false); throw err })
     }
 
+    function handleOpenEdit(index) {
+        setEditingIndex(index)
+        setFormError(null)
+        history.pushState({ adminOpen: true, editingIndex: index }, "")
+    }
+
+    function handleCancelEdit() {
+        if (window.history.state?.editingIndex !== undefined) {
+            history.back()
+        } else {
+            setEditingIndex(null)
+        }
+    }
+
     function handleSave(service) {
         const updated = editingIndex === "new"
             ? [...config, service]
             : config.map((s, i) => i === editingIndex ? service : s)
         putConfig(updated)
-            .then(() => setEditingIndex(null))
+            .then(() => {
+                if (window.history.state?.editingIndex !== undefined) history.back()
+                else setEditingIndex(null)
+            })
             .catch(err => setFormError(err.message))
     }
 
@@ -62,7 +96,7 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
             <ServiceForm
                 service={editingIndex === "new" ? null : config[editingIndex]}
                 onSave={handleSave}
-                onCancel={() => setEditingIndex(null)}
+                onCancel={handleCancelEdit}
                 saving={saving}
                 error={formError}
             />
@@ -76,7 +110,7 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
                     <button className="panel-back" onClick={onClose}>← Back</button>
                     <h2>Config</h2>
                 </div>
-                <button className="admin-add-btn" onClick={() => setEditingIndex("new")}>
+                <button className="admin-add-btn" onClick={() => handleOpenEdit("new")}>
                     {getIcon("plus", { size: 14 })} New service
                 </button>
             </div>
@@ -100,7 +134,7 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
                                 {svc.actions?.length ? `${svc.actions.length} action${svc.actions.length > 1 ? "s" : ""}` : ""}
                             </span>
                             <div className="admin-row-btns">
-                                <button className="admin-btn edit" onClick={() => setEditingIndex(i)} disabled={saving}>
+                                <button className="admin-btn edit" onClick={() => handleOpenEdit(i)} disabled={saving}>
                                     Edit
                                 </button>
                                 <button className="admin-btn delete" onClick={() => setDeleteIndex(i)} disabled={saving}>
