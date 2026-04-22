@@ -31,6 +31,7 @@ def yaml_to_card(svc: YamlService) -> Service:
                     endpoint=backend_path,
                     method=action.method,
                     confirm=action.confirm,
+                    show_response=action.show_response,
                 ))
     return Service(
         name=svc.name,

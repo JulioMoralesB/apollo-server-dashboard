@@ -55,6 +55,7 @@
       endpoint: /minecraft/restart
       method: POST
       confirm: true # show a confirmation dialog before performing the action
+      show-response: false # show the API response body after the action (default: false)
   monitor: true
   monitor-interval: 60
   monitor-timeout: 5
