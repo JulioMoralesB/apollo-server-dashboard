@@ -17,11 +17,12 @@ def get_status(name: str) -> str:
 
 async def _check_http(svc: YamlService) -> None:
     url = svc.monitor_url
+    headers = dict(svc.monitor_headers) if svc.monitor_headers else {}
     try:
         async with httpx.AsyncClient(timeout=svc.monitor_timeout) as client:
             for attempt in range(svc.monitor_retries + 1):
                 try:
-                    resp = await client.get(url)
+                    resp = await client.get(url, headers=headers)
                     ok = resp.status_code == svc.monitor_expect_status
                     if ok and svc.monitor_expect_body:
                         ok = svc.monitor_expect_body in resp.text
