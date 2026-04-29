@@ -1,5 +1,7 @@
 # Apollo Server Dashboard
 
+[![CI](https://github.com/JulioMoralesB/apollo-server-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/JulioMoralesB/apollo-server-dashboard/actions/workflows/ci.yml)
+
 A home server dashboard inspired by Stream Deck. Each service is represented as a card with live status and contextual action buttons.
 
 Built with React + Vite (frontend) and FastAPI (backend). Runs as two Docker containers behind an nginx reverse proxy.
