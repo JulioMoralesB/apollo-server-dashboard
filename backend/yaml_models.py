@@ -1,9 +1,11 @@
+"""Pydantic models that mirror the services.yaml schema, including validation."""
 from typing import Any
 
 from pydantic import BaseModel, model_validator
 
 
 class YamlAction(BaseModel):
+    """A single action entry as defined in services.yaml."""
     label: str
     icon: str
     endpoint: str
@@ -17,12 +19,14 @@ class YamlAction(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def normalize_keys(cls, data: Any) -> Any:
+        """Convert kebab-case YAML keys to snake_case before field assignment."""
         if not isinstance(data, dict):
             return data
         return {k.replace("-", "_"): v for k, v in data.items()}
 
 
 class YamlService(BaseModel):
+    """A service defined in services.yaml with its monitor and action config."""
     name: str
     icon: str | None = None
     url: str | None = None
@@ -46,12 +50,14 @@ class YamlService(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def normalize_keys(cls, data: Any) -> Any:
+        """Convert kebab-case YAML keys to snake_case before field assignment."""
         if not isinstance(data, dict):
             return data
         return {k.replace("-", "_"): v for k, v in data.items()}
 
     @model_validator(mode="after")
     def validate_monitor_config(self) -> "YamlService":
+        """Ensure required monitor fields are present based on the monitor type."""
         if self.monitor:
             if self.use_docker_health and not self.docker_container:
                 raise ValueError(

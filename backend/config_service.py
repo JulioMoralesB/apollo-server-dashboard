@@ -1,3 +1,4 @@
+"""Build dashboard Service cards from YAML config and dispatch action calls."""
 import logging
 import re
 
@@ -16,6 +17,7 @@ def _slug(text: str) -> str:
 
 
 def yaml_to_card(svc: YamlService) -> Service:
+    """Convert a ``YamlService`` config entry into a frontend-ready ``Service`` card."""
     actions: list[Action] = []
     if svc.actions:
         slug = _slug(svc.name)

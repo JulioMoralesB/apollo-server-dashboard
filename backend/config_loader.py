@@ -1,3 +1,4 @@
+"""Load, validate, interpolate, and persist the services.yaml configuration file."""
 import logging
 import os
 import re
@@ -23,9 +24,7 @@ _ENV_VAR_RE = re.compile(r"\$\{(\w+)\}")
 
 
 def _interpolate_inner(value: Any, missing: set[str]) -> Any:
-    """Recursively substitute ${VAR_NAME} placeholders,
-    collecting names of missing env vars.
-    """
+    """Substitute ${VAR_NAME} placeholders, collecting names of missing env vars."""
     if isinstance(value, str):
         def _replace(m: re.Match) -> str:
             var = m.group(1)
@@ -77,6 +76,11 @@ def _bootstrap_config(config_path: Path) -> None:
 
 
 def load_config() -> None:
+    """Resolve the config path, bootstrap from the example if missing, and parse it.
+
+    Populates the module-level ``_services`` and ``_config_path`` variables.
+    Invalid service entries are logged and skipped rather than aborting startup.
+    """
     global _config_path
     config_env = os.getenv("SERVICES_CONFIG")
     config_path = (
@@ -138,6 +142,7 @@ def load_config() -> None:
 
 
 def get_services() -> list[YamlService]:
+    """Return a snapshot of the currently loaded services."""
     return list(_services)
 
 
@@ -155,6 +160,7 @@ def _to_yaml_dict(svc: YamlService) -> dict:
 
 
 def save_config(services: list[YamlService]) -> None:
+    """Serialize *services* to YAML and write them to the active config file."""
     data = [_to_yaml_dict(svc) for svc in services]
     yaml_text = yaml.dump(
         data, default_flow_style=False, allow_unicode=True, sort_keys=False

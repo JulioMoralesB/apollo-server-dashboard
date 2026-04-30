@@ -1,3 +1,4 @@
+"""Background monitoring loop for HTTP and Docker container health checks."""
 import asyncio
 import logging
 
@@ -11,6 +12,7 @@ _status_cache: dict[str, str] = {}
 
 
 def get_status(name: str) -> str:
+    """Return the last known status for *name*, or ``"unknown"`` if never checked."""
     return _status_cache.get(name, "unknown")
 
 
@@ -53,6 +55,11 @@ async def _check_docker(svc: YamlService) -> None:
 
 
 async def run_monitoring_loop() -> None:
+    """Continuously check each service at its configured interval.
+
+    Runs forever as a background task. HTTP and Docker checks execute
+    concurrently via ``asyncio.gather``. Designed to be cancelled on shutdown.
+    """
     last_check: dict[str, float] = {}
 
     while True:

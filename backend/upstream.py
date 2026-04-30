@@ -1,3 +1,4 @@
+"""Helper to call upstream services and wrap the result in an ActionResult."""
 import logging
 
 import http_client
@@ -62,4 +63,5 @@ def post_to_upstream(
     headers: dict | None = None,
     body: dict | None = None,
 ) -> ActionResult:
+    """Convenience wrapper that calls ``call_upstream`` with ``method="POST"``."""
     return call_upstream(url, method="POST", label=label, headers=headers, body=body)

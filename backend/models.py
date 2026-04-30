@@ -1,7 +1,9 @@
+"""Pydantic response models returned by the API to the frontend."""
 from pydantic import BaseModel
 
 
 class Action(BaseModel):
+    """A single action button displayed on a service card."""
     label: str
     icon: str
     href: str | None = None      # external link
@@ -12,6 +14,7 @@ class Action(BaseModel):
 
 
 class Service(BaseModel):
+    """A service card as rendered on the dashboard, including live status."""
 
     name: str
     status: str
@@ -21,6 +24,8 @@ class Service(BaseModel):
 
 
 class ActionResult(BaseModel):
+    """Result of an action call returned to the frontend after execution."""
+
     success: bool
     message: str | None = None
     status_code: int | None = None
