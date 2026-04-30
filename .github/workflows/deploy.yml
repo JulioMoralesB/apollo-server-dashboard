@@ -1,0 +1,30 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, homelab]
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    env:
+      REPO: ${{ github.repository }}
+      VERSION: ${{ github.event.workflow_run.head_branch }}
+    steps:
+      - name: Trigger Portainer redeploy
+        run: curl -fsS -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}"
+
+      - name: Notify deployment success
+        run: |
+          curl -fsS -X POST "${{ secrets.N8N_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"repo\":\"$REPO\",\"version\":\"$VERSION\",\"status\":\"deployed\"}"
+
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          curl -fsS -X POST "${{ secrets.N8N_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"repo\":\"$REPO\",\"version\":\"$VERSION\",\"status\":\"failed\"}"
