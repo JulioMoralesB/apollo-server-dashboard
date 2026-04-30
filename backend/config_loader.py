@@ -1,3 +1,4 @@
+"""Load, validate, interpolate, and persist the services.yaml configuration file."""
 import logging
 import os
 import re
@@ -7,7 +8,6 @@ from typing import Any
 
 import yaml
 from pydantic import ValidationError
-
 from yaml_models import YamlService
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ _ENV_VAR_RE = re.compile(r"\$\{(\w+)\}")
 
 
 def _interpolate_inner(value: Any, missing: set[str]) -> Any:
-    """Recursively substitute ${VAR_NAME} placeholders, collecting missing variable names."""
+    """Substitute ${VAR_NAME} placeholders, collecting names of missing env vars."""
     if isinstance(value, str):
         def _replace(m: re.Match) -> str:
             var = m.group(1)
@@ -67,18 +67,27 @@ def _bootstrap_config(config_path: Path) -> None:
             f"  {config_path}\n"
             "Edit it with your services and restart."
         )
-    except PermissionError:
+    except PermissionError as err:
         raise FileNotFoundError(
             f"No services.yaml found and could not create one automatically.\n"
             f"Create it manually:\n"
             f"  cp {EXAMPLE_PATH} {config_path}"
-        )
+        ) from err
 
 
 def load_config() -> None:
+    """Resolve the config path, bootstrap from the example if missing, and parse it.
+
+    Populates the module-level ``_services`` and ``_config_path`` variables.
+    Invalid service entries are logged and skipped rather than aborting startup.
+    """
     global _config_path
     config_env = os.getenv("SERVICES_CONFIG")
-    config_path = Path(config_env.strip()) if config_env and config_env.strip() else DEFAULT_CONFIG_PATH
+    config_path = (
+        Path(config_env.strip())
+        if config_env and config_env.strip()
+        else DEFAULT_CONFIG_PATH
+    )
     _config_path = config_path
 
     if not config_path.exists():
@@ -109,7 +118,11 @@ def load_config() -> None:
         try:
             services.append(YamlService.model_validate(_interpolate(item)))
         except ValidationError as e:
-            name = item.get("name", f"item #{i}") if isinstance(item, dict) else f"item #{i}"
+            name = (
+                item.get("name", f"item #{i}")
+                if isinstance(item, dict)
+                else f"item #{i}"
+            )
             formatted_errors = []
             for err in e.errors():
                 loc = err.get("loc", ())
@@ -129,6 +142,7 @@ def load_config() -> None:
 
 
 def get_services() -> list[YamlService]:
+    """Return a snapshot of the currently loaded services."""
     return list(_services)
 
 
@@ -146,8 +160,11 @@ def _to_yaml_dict(svc: YamlService) -> dict:
 
 
 def save_config(services: list[YamlService]) -> None:
+    """Serialize *services* to YAML and write them to the active config file."""
     data = [_to_yaml_dict(svc) for svc in services]
-    yaml_text = yaml.dump(data, default_flow_style=False, allow_unicode=True, sort_keys=False)
+    yaml_text = yaml.dump(
+        data, default_flow_style=False, allow_unicode=True, sort_keys=False
+    )
     _config_path.write_text(yaml_text)
     global _services
     _services = services

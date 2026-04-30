@@ -1,17 +1,16 @@
+"""FastAPI application entry point: auth, lifespan, and top-level API routes."""
+import asyncio
 import logging
+import os
 from contextlib import asynccontextmanager
 
-from dotenv import load_dotenv
-import os
-from fastapi import FastAPI, HTTPException, Security, status
-from fastapi.security import APIKeyHeader
-from fastapi.middleware.cors import CORSMiddleware
-
-import asyncio
-
-import http_client
 import config_loader
+import http_client
 from config_service import build_config_router, yaml_to_card
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Security, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import APIKeyHeader
 from models import Service
 from monitoring import run_monitoring_loop
 from yaml_models import YamlService
@@ -29,6 +28,7 @@ api_key_header = APIKeyHeader(name="X-API-Key", auto_error=True)
 
 
 def verify_api_key(api_key: str = Security(api_key_header)):
+    """Validate the ``X-API-Key`` header. Raises 401 if the key does not match."""
     if api_key != API_KEY:
         logging.warning(f"Invalid API Key: {api_key}")
         print(f"Invalid API Key: {api_key}")
@@ -40,6 +40,7 @@ def verify_api_key(api_key: str = Security(api_key_header)):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Manage startup and shutdown: load config, init HTTP client, start monitor."""
     config_loader.load_config()
     http_client.init()
     app.include_router(build_config_router())
@@ -63,17 +64,20 @@ app.add_middleware(
 )
 
 
-@app.get("/services", response_model=list[Service])
+@app.get("/services")
 def get_services() -> list[Service]:
+    """Return all service cards with their current monitoring status."""
     return [yaml_to_card(svc) for svc in config_loader.get_services()]
 
 
-@app.get("/config", response_model=list[YamlService])
+@app.get("/config")
 def get_config() -> list[YamlService]:
+    """Return the raw service definitions from the active config file."""
     return config_loader.get_services()
 
 
-@app.put("/config", response_model=list[YamlService])
+@app.put("/config")
 def put_config(services: list[YamlService]) -> list[YamlService]:
+    """Replace the full service list and persist it to the config file."""
     config_loader.save_config(services)
     return config_loader.get_services()

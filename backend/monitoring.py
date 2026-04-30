@@ -1,9 +1,9 @@
+"""Background monitoring loop for HTTP and Docker container health checks."""
 import asyncio
 import logging
 
-import httpx
-
 import config_loader
+import httpx
 from yaml_models import YamlService
 
 logger = logging.getLogger(__name__)
@@ -12,6 +12,7 @@ _status_cache: dict[str, str] = {}
 
 
 def get_status(name: str) -> str:
+    """Return the last known status for *name*, or ``"unknown"`` if never checked."""
     return _status_cache.get(name, "unknown")
 
 
@@ -30,8 +31,10 @@ async def _check_http(svc: YamlService) -> None:
                     logger.debug("Monitor %s -> %s", svc.name, _status_cache[svc.name])
                     return
                 except httpx.RequestError as exc:
-                    logger.warning("Monitor request failed for '%s' (attempt %d/%d): %s",
-                                   svc.name, attempt + 1, svc.monitor_retries + 1, exc)
+                    logger.warning(
+                        "Monitor request failed for '%s' (attempt %d/%d): %s",
+                        svc.name, attempt + 1, svc.monitor_retries + 1, exc,
+                    )
                     if attempt < svc.monitor_retries:
                         await asyncio.sleep(1)
             _status_cache[svc.name] = "offline"
@@ -52,12 +55,23 @@ async def _check_docker(svc: YamlService) -> None:
 
 
 async def run_monitoring_loop() -> None:
+    """Continuously check each service at its configured interval.
+
+    Runs forever as a background task. HTTP and Docker checks execute
+    concurrently via ``asyncio.gather``. Designed to be cancelled on shutdown.
+    """
     last_check: dict[str, float] = {}
 
     while True:
         services = config_loader.get_services()
-        http_services = [s for s in services if s.monitor and not s.use_docker_health and s.monitor_url]
-        docker_services = [s for s in services if s.monitor and s.use_docker_health and s.docker_container]
+        http_services = [
+            s for s in services
+            if s.monitor and not s.use_docker_health and s.monitor_url
+        ]
+        docker_services = [
+            s for s in services
+            if s.monitor and s.use_docker_health and s.docker_container
+        ]
 
         now = asyncio.get_event_loop().time()
         pending = []

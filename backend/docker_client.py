@@ -1,3 +1,4 @@
+"""Thin wrapper around the Docker SDK for container health checks."""
 import logging
 
 import docker
@@ -16,6 +17,11 @@ def _get_client() -> docker.DockerClient:
 
 
 def get_container_status(container_name: str) -> str:
+    """Return ``"online"``, ``"offline"``, or ``"unknown"`` for *container_name*.
+
+    Prefers the Docker health-check status when available; falls back to the
+    container ``running`` state otherwise.
+    """
     try:
         container = _get_client().containers.get(container_name)
         if container.status != "running":
