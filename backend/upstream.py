@@ -1,8 +1,7 @@
 import logging
 
-import httpx
-
 import http_client
+import httpx
 from models import ActionResult
 
 logger = logging.getLogger(__name__)
@@ -41,10 +40,17 @@ def call_upstream(
         response_body = raw[:_MAX_BODY_CHARS] if raw else None
         if response.is_success:
             logger.info("%s %s%s -> HTTP %s", method_upper, url, tag, status_code)
-            return ActionResult(success=True, status_code=status_code, body=response_body)
+            return ActionResult(
+                success=True, status_code=status_code, body=response_body,
+            )
         else:
-            logger.warning("%s %s%s -> HTTP %s: %s", method_upper, url, tag, status_code, raw[:500])
-            return ActionResult(success=False, status_code=status_code, body=response_body)
+            logger.warning(
+                "%s %s%s -> HTTP %s: %s",
+                method_upper, url, tag, status_code, raw[:500],
+            )
+            return ActionResult(
+                success=False, status_code=status_code, body=response_body,
+            )
     except httpx.RequestError as exc:
         logger.warning("%s %s%s failed: %s", method_upper, url, tag, exc)
         return ActionResult(success=False, message="Service unreachable: " + str(exc))

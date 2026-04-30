@@ -1,17 +1,16 @@
-import logging
-from contextlib import asynccontextmanager
-
-from dotenv import load_dotenv
-import os
-from fastapi import FastAPI, HTTPException, Security, status
-from fastapi.security import APIKeyHeader
-from fastapi.middleware.cors import CORSMiddleware
 
 import asyncio
+import logging
+import os
+from contextlib import asynccontextmanager
 
-import http_client
 import config_loader
+import http_client
 from config_service import build_config_router, yaml_to_card
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Security, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import APIKeyHeader
 from models import Service
 from monitoring import run_monitoring_loop
 from yaml_models import YamlService
@@ -63,17 +62,17 @@ app.add_middleware(
 )
 
 
-@app.get("/services", response_model=list[Service])
+@app.get("/services")
 def get_services() -> list[Service]:
     return [yaml_to_card(svc) for svc in config_loader.get_services()]
 
 
-@app.get("/config", response_model=list[YamlService])
+@app.get("/config")
 def get_config() -> list[YamlService]:
     return config_loader.get_services()
 
 
-@app.put("/config", response_model=list[YamlService])
+@app.put("/config")
 def put_config(services: list[YamlService]) -> list[YamlService]:
     config_loader.save_config(services)
     return config_loader.get_services()

@@ -1,4 +1,5 @@
 from typing import Any
+
 from pydantic import BaseModel, model_validator
 
 
@@ -54,10 +55,12 @@ class YamlService(BaseModel):
         if self.monitor:
             if self.use_docker_health and not self.docker_container:
                 raise ValueError(
-                    f"Service '{self.name}': 'docker-container' is required when 'use-docker-health' is true"
+                    f"Service '{self.name}': 'docker-container' is required"
+                    " when 'use-docker-health' is true"
                 )
             if not self.use_docker_health and not self.monitor_url:
                 raise ValueError(
-                    f"Service '{self.name}': 'monitor-url' is required when 'monitor' is true and 'use-docker-health' is false"
+                    f"Service '{self.name}': 'monitor-url' is required when"
+                    " 'monitor' is true and 'use-docker-health' is false"
                 )
         return self
