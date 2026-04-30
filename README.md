@@ -173,18 +173,59 @@ apollo-server-dashboard-backend:
 
 Then use `http://host.docker.internal:<port>` as the monitor or action URL.
 
-## CI/CD (Jenkins)
+## Self-hosting
 
-The included `Jenkinsfile` uses a shared pipeline library. Before first run:
+### Prerequisites
 
-```bash
-sudo mkdir /opt/stacks/apollo-server-dashboard
-sudo chown -R jenkins:jenkins /opt/stacks/apollo-server-dashboard
+- Docker 20.10+
+- Docker Compose v2+
+
+### Quick start
+
+1. Copy `.env.example` to `.env` and fill in the required variables (at minimum, set `API_KEY`):
+   ```bash
+   cp .env.example .env
+   ```
+2. Create the external Docker network if it doesn't exist yet:
+   ```bash
+   docker network create apollo-server-network
+   ```
+3. Start the stack:
+   ```bash
+   docker compose up -d
+   ```
+
+The dashboard will be available at `http://<host>:9902` (or the port you set in `FRONTEND_PORT`).
+
+On first run, `config/services.yaml` is created from the example template. Edit it directly or use the Admin UI (⚙ icon) to add your services.
+
+### Pinning a version
+
+The default `compose.yaml` pulls the `latest` tag. To pin to a specific release, edit `compose.yaml` and replace `latest` with the version you want:
+
+```yaml
+image: ghcr.io/juliomoralesb/apollo-server-dashboard:1.2.3
+image: ghcr.io/juliomoralesb/apollo-server-dashboard-backend:1.2.3
 ```
 
-Create a Jenkins pipeline job pointing to this repository. The pipeline builds the Docker images, copies `compose.yaml` to the Dockge stack directory, and restarts the stack.
+Available versions are listed on the [Releases](https://github.com/JulioMoralesB/apollo-server-dashboard/releases) page.
 
-> **Note:** Replace `'dockge-pipeline'` in `Jenkinsfile` with the actual name of your shared library as configured in Jenkins.
+### Environment variable reference
+
+| Variable | Default | Description |
+|---|---|---|
+| `API_KEY` | _(required)_ | Secret key sent as `X-API-Key` on every request |
+| `FRONTEND_PORT` | `9902` | Host port for the dashboard |
+| `SERVICES_CONFIG` | `/app/config/services.yaml` | Path to the service config file inside the container |
+
+See `.env.example` for all available variables.
+
+### Updating
+
+```bash
+docker compose pull
+docker compose up -d
+```
 
 ## License
 
