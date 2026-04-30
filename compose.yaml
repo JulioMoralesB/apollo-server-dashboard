@@ -1,7 +1,8 @@
 services:
   apollo-server-dashboard:
-    build:
-      context: .
+    # Pin to a specific version for reproducible deployments:
+    # image: ghcr.io/juliomoralesb/apollo-server-dashboard:1.2.3
+    image: ghcr.io/juliomoralesb/apollo-server-dashboard:latest
     container_name: apollo-server-dashboard
     ports:
       - "${FRONTEND_PORT:-9902}:80"
@@ -12,8 +13,9 @@ services:
       - apollo-server-network
 
   apollo-server-dashboard-backend:
-    build:
-      context: ./backend
+    # Pin to a specific version for reproducible deployments:
+    # image: ghcr.io/juliomoralesb/apollo-server-dashboard-backend:1.2.3
+    image: ghcr.io/juliomoralesb/apollo-server-dashboard-backend:latest
     container_name: apollo-server-dashboard-backend
     environment:
       - API_KEY=${API_KEY:-}
