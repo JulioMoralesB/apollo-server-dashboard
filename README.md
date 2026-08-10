@@ -69,30 +69,45 @@ npm run dev
 
 The Vite dev server proxies `/services` and `/config` to `http://localhost:8001` automatically.
 
-## Docker Deployment
+## Self-hosting
 
 ### Prerequisites
 
 - Docker 20.10+
 - Docker Compose v2+
-- An existing external Docker network named `apollo-server-network`:
-  ```bash
-  docker network create apollo-server-network
-  ```
 
-### Quick Start
+### Quick start
 
-```bash
-cp .env.example .env
-# Edit .env — set API_KEY at minimum
-docker compose up -d --build
+1. Copy `.env.example` to `.env` and fill in the required variables (at minimum, set `API_KEY`):
+   ```bash
+   cp .env.example .env
+   ```
+2. Create the external Docker network if it doesn't exist yet:
+   ```bash
+   docker network inspect apollo-server-network >/dev/null 2>&1 || \
+     docker network create apollo-server-network
+   ```
+3. Start the stack:
+   ```bash
+   docker compose up -d
+   ```
+
+The dashboard will be available at `http://<host>:9902` (or the port you set in `FRONTEND_PORT`).
+
+On first run, `config/services.yaml` is created from the example template. Edit it directly or use the Admin UI (⚙ icon) to add your services.
+
+### Pinning a version
+
+The default `compose.yaml` pulls the `latest` tag. To pin to a specific release, edit `compose.yaml` and replace `latest` with the version you want:
+
+```yaml
+image: ghcr.io/juliomoralesb/apollo-server-dashboard:1.2.3
+image: ghcr.io/juliomoralesb/apollo-server-dashboard-backend:1.2.3
 ```
 
-On first run, `config/services.yaml` is created from the example template. Edit it or use the Admin UI (⚙ icon in the top right) to add your services.
+Available versions are listed on the [Releases](https://github.com/JulioMoralesB/apollo-server-dashboard/releases) page.
 
-The dashboard will be available at `http://<host>:<FRONTEND_PORT>`.
-
-## Environment Variables
+### Environment variable reference
 
 | Variable | Default | Description |
 |---|---|---|
@@ -100,7 +115,16 @@ The dashboard will be available at `http://<host>:<FRONTEND_PORT>`.
 | `FRONTEND_PORT` | `9902` | Host port for the dashboard |
 | `SERVICES_CONFIG` | `/app/config/services.yaml` | Path to the service config file inside the container |
 
-Additional variables (e.g. API keys, webhook URLs) can be defined in `.env` and referenced in `services.yaml` as `${MY_VAR}`.
+The table above covers the core variables required to run the dashboard. Optional integration variables (e.g. `FREE_GAMES_NOTIFIER_*`) are documented with comments in `.env.example`.
+
+### Updating
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+If you pinned a version, edit both image tags in `compose.yaml` to the target release before running these commands — `docker compose pull` only re-pulls whatever tag is already set.
 
 ## Service Configuration
 
@@ -174,60 +198,6 @@ apollo-server-dashboard-backend:
 ```
 
 Then use `http://host.docker.internal:<port>` as the monitor or action URL.
-
-## Self-hosting
-
-### Prerequisites
-
-- Docker 20.10+
-- Docker Compose v2+
-
-### Quick start
-
-1. Copy `.env.example` to `.env` and fill in the required variables (at minimum, set `API_KEY`):
-   ```bash
-   cp .env.example .env
-   ```
-2. Create the external Docker network if it doesn't exist yet:
-   ```bash
-   docker network create apollo-server-network
-   ```
-3. Start the stack:
-   ```bash
-   docker compose up -d
-   ```
-
-The dashboard will be available at `http://<host>:9902` (or the port you set in `FRONTEND_PORT`).
-
-On first run, `config/services.yaml` is created from the example template. Edit it directly or use the Admin UI (⚙ icon) to add your services.
-
-### Pinning a version
-
-The default `compose.yaml` pulls the `latest` tag. To pin to a specific release, edit `compose.yaml` and replace `latest` with the version you want:
-
-```yaml
-image: ghcr.io/juliomoralesb/apollo-server-dashboard:1.2.3
-image: ghcr.io/juliomoralesb/apollo-server-dashboard-backend:1.2.3
-```
-
-Available versions are listed on the [Releases](https://github.com/JulioMoralesB/apollo-server-dashboard/releases) page.
-
-### Environment variable reference
-
-| Variable | Default | Description |
-|---|---|---|
-| `API_KEY` | _(required)_ | Secret key sent as `X-API-Key` on every request |
-| `FRONTEND_PORT` | `9902` | Host port for the dashboard |
-| `SERVICES_CONFIG` | `/app/config/services.yaml` | Path to the service config file inside the container |
-
-See `.env.example` for all available variables.
-
-### Updating
-
-```bash
-docker compose pull
-docker compose up -d
-```
 
 ## License
 
