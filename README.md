@@ -84,7 +84,8 @@ The Vite dev server proxies `/services` and `/config` to `http://localhost:8001`
    ```
 2. Create the external Docker network if it doesn't exist yet:
    ```bash
-   docker network create apollo-server-network
+   docker network inspect apollo-server-network >/dev/null 2>&1 || \
+     docker network create apollo-server-network
    ```
 3. Start the stack:
    ```bash
@@ -114,7 +115,7 @@ Available versions are listed on the [Releases](https://github.com/JulioMoralesB
 | `FRONTEND_PORT` | `9902` | Host port for the dashboard |
 | `SERVICES_CONFIG` | `/app/config/services.yaml` | Path to the service config file inside the container |
 
-See `.env.example` for all available variables.
+The table above covers the core variables required to run the dashboard. Optional integration variables (e.g. `FREE_GAMES_NOTIFIER_*`) are documented with comments in `.env.example`.
 
 ### Updating
 
@@ -122,6 +123,8 @@ See `.env.example` for all available variables.
 docker compose pull
 docker compose up -d
 ```
+
+If you pinned a version, edit both image tags in `compose.yaml` to the target release before running these commands — `docker compose pull` only re-pulls whatever tag is already set.
 
 ## Service Configuration
 
