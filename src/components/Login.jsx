@@ -2,12 +2,13 @@ import { useState } from "react"
 import "./Login.css"
 
 function Login({ onLogin, error }) {
-  const [key, setKey] = useState("")
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
   const [rememberMe, setRememberMe] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (key.trim()) onLogin(key.trim(), rememberMe)
+    if (username.trim() && password) onLogin(username.trim(), password, rememberMe)
   }
 
   return (
@@ -15,11 +16,19 @@ function Login({ onLogin, error }) {
       <h1>Apollo Dashboard</h1>
       <form className="login-box" onSubmit={handleSubmit}>
         <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoFocus
+          autoComplete="username"
+        />
+        <input
           type="password"
           placeholder="Password"
-          value={key}
-          onChange={(e) => setKey(e.target.value)}
-          autoFocus
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
         />
         <label className="remember-me">
           <input
@@ -30,7 +39,7 @@ function Login({ onLogin, error }) {
           Remember me
         </label>
         <button type="submit">Enter</button>
-        {error && <p className="login-error">Invalid API Key</p>}
+        {error && <p className="login-error">Invalid username or password</p>}
       </form>
     </div>
   )

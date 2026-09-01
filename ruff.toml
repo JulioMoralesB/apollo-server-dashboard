@@ -3,3 +3,8 @@ select = ["E", "F", "I", "B", "FAST", "D"]
 
 [lint.pydocstyle]
 convention = "google"
+
+[lint.flake8-bugbear]
+# ruff recognizes fastapi.Depends() as an immutable default but not
+# fastapi.Security() — same idiom, used here for auth dependencies.
+extend-immutable-calls = ["fastapi.Security"]

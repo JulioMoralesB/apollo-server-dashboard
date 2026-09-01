@@ -3,7 +3,7 @@ import { getIcon } from "../utils/icons"
 import ServiceForm from "./ServiceForm"
 import "./AdminPanel.css"
 
-function AdminPanel({ onClose, apiKey, onConfigChanged }) {
+function AdminPanel({ onClose, authFetch, onConfigChanged }) {
     const [config, setConfig] = useState(null)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -48,19 +48,19 @@ function AdminPanel({ onClose, apiKey, onConfigChanged }) {
     }, [])
 
     useEffect(() => {
-        fetch("/config", { headers: { "X-API-Key": apiKey } })
+        authFetch("/config")
             .then(res => res.json())
             .then(data => { setConfig(data); setLoading(false) })
             .catch(err => { setError(err.message); setLoading(false) })
-    }, [apiKey])
+    }, [authFetch])
 
     function putConfig(updated) {
         setSaving(true)
         setError(null)
         setFormError(null)
-        return fetch("/config", {
+        return authFetch("/config", {
             method: "PUT",
-            headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(updated),
         })
             .then(res => {
