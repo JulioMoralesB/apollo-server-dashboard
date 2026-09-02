@@ -1,16 +1,24 @@
 """FastAPI application entry point: auth, lifespan, and top-level API routes."""
 import asyncio
 import logging
-import os
 from contextlib import asynccontextmanager
 
 import config_loader
 import http_client
+from auth import (
+    AccessTokenResponse,
+    LoginRequest,
+    RefreshRequest,
+    TokenPairResponse,
+    authenticate,
+    create_token_pair,
+    refresh_access_token,
+    verify_access_token,
+)
 from config_service import build_config_router, yaml_to_card
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Security, status
+from fastapi import FastAPI, Security
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import APIKeyHeader
 from models import Service
 from monitoring import run_monitoring_loop
 from yaml_models import YamlService
@@ -18,24 +26,6 @@ from yaml_models import YamlService
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
-
-API_KEY = os.getenv("API_KEY")
-if not API_KEY:
-    raise RuntimeError("API_KEY environment variable is not set")
-
-
-api_key_header = APIKeyHeader(name="X-API-Key", auto_error=True)
-
-
-def verify_api_key(api_key: str = Security(api_key_header)):
-    """Validate the ``X-API-Key`` header. Raises 401 if the key does not match."""
-    if api_key != API_KEY:
-        logging.warning(f"Invalid API Key: {api_key}")
-        print(f"Invalid API Key: {api_key}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid API Key",
-        )
 
 
 @asynccontextmanager
@@ -54,7 +44,7 @@ async def lifespan(app: FastAPI):
     http_client.close()
 
 
-app = FastAPI(lifespan=lifespan, dependencies=[Security(verify_api_key)])
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -64,19 +54,32 @@ app.add_middleware(
 )
 
 
-@app.get("/services")
+@app.post("/auth/login")
+def login(credentials: LoginRequest) -> TokenPairResponse:
+    """Validate username/password and issue an access + refresh token pair."""
+    authenticate(credentials.username, credentials.password)
+    return create_token_pair()
+
+
+@app.post("/auth/refresh")
+def refresh(payload: RefreshRequest) -> AccessTokenResponse:
+    """Exchange a valid refresh token for a new access token."""
+    return refresh_access_token(payload.refresh_token)
+
+
+@app.get("/services", dependencies=[Security(verify_access_token)])
 def get_services() -> list[Service]:
     """Return all service cards with their current monitoring status."""
     return [yaml_to_card(svc) for svc in config_loader.get_services()]
 
 
-@app.get("/config")
+@app.get("/config", dependencies=[Security(verify_access_token)])
 def get_config() -> list[YamlService]:
     """Return the raw service definitions from the active config file."""
     return config_loader.get_services()
 
 
-@app.put("/config")
+@app.put("/config", dependencies=[Security(verify_access_token)])
 def put_config(services: list[YamlService]) -> list[YamlService]:
     """Replace the full service list and persist it to the config file."""
     config_loader.save_config(services)

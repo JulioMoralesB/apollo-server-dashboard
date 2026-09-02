@@ -15,7 +15,7 @@ Built with React + Vite (frontend) and FastAPI (backend). Runs as two Docker con
 - Custom monitor headers (for services that require authentication, e.g. Home Assistant)
 - Admin UI to manage services without editing files
 - Declarative YAML config — no code required to add services
-- API key authentication
+- Username/password login with short-lived, auto-refreshing session tokens
 
 ## Project Structure
 
@@ -57,7 +57,7 @@ cd backend
 python3 -m venv env
 source env/bin/activate
 pip install -r requirements.txt
-API_KEY=dev uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+DASHBOARD_USER=admin DASHBOARD_PASSWORD=dev JWT_SECRET=dev uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
 ### Frontend
@@ -78,7 +78,7 @@ The Vite dev server proxies `/services` and `/config` to `http://localhost:8001`
 
 ### Quick start
 
-1. Copy `.env.example` to `.env` and fill in the required variables (at minimum, set `API_KEY`):
+1. Copy `.env.example` to `.env` and fill in the required variables (at minimum, `DASHBOARD_USER`, `DASHBOARD_PASSWORD`, and `JWT_SECRET`):
    ```bash
    cp .env.example .env
    ```
@@ -111,11 +111,15 @@ Available versions are listed on the [Releases](https://github.com/JulioMoralesB
 
 | Variable | Default | Description |
 |---|---|---|
-| `API_KEY` | _(required)_ | Secret key sent as `X-API-Key` on every request |
+| `DASHBOARD_USER` | _(required)_ | Login username |
+| `DASHBOARD_PASSWORD` | _(required)_ | Login password, compared as a bcrypt hash |
+| `JWT_SECRET` | _(required)_ | Signs session tokens; keep it stable across restarts, or every session is invalidated |
 | `FRONTEND_PORT` | `9902` | Host port for the dashboard |
 | `SERVICES_CONFIG` | `/app/config/services.yaml` | Path to the service config file inside the container |
 
 The table above covers the core variables required to run the dashboard. Optional integration variables (e.g. `FREE_GAMES_NOTIFIER_*`) are documented with comments in `.env.example`.
+
+> **Migrating from `API_KEY`:** older setups used a single `API_KEY` for both login and every API request. Replace it in `.env` with `DASHBOARD_USER`, `DASHBOARD_PASSWORD`, and a new `JWT_SECRET` (`openssl rand -hex 32`), then `docker compose up -d` — existing bookmarks that relied on the old key stop working and everyone needs to log in again.
 
 ### Updating
 

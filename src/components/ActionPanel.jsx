@@ -69,7 +69,7 @@ function ResponseViewer({ result, onDismiss }) {
 
 // ─── Main panel ──────────────────────────────────────────────────────────────
 
-function ActionPanel({ service, onClose, apiKey }) {
+function ActionPanel({ service, onClose, authFetch }) {
     const actions = service.actions || [];
     const [actionStates, setActionStates] = useState({});
     const [lastResult, setLastResult] = useState(null);
@@ -115,17 +115,16 @@ function ActionPanel({ service, onClose, apiKey }) {
 
         setActionStates((prev) => ({ ...prev, [index]: "loading" }));
 
-        fetch(action.endpoint, {
+        authFetch(action.endpoint, {
             method: action.method || "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-API-Key": apiKey,
                 ...action.headers,
             },
             body: action.payload ? JSON.stringify(action.payload) : undefined,
         })
             .then((res) => {
-                if (res.status === 401) { onClose(); return null; }
+                if (res.status === 401 || res.status === 403) { onClose(); return null; }
                 return res.json().catch(() => null).then((data) => ({ ok: res.ok, data }));
             })
             .then((result) => {

@@ -34,22 +34,28 @@ docker compose up -d    # frontend (nginx) + backend (uvicorn)
 ### Data Flow
 ```
 React App
-  → GET /services (X-API-Key header)
+  → POST /auth/login (username + password) → access + refresh token
+  → GET /services (Authorization: Bearer <access token>)
   → FastAPI aggregates all service cards
   → Returns Service[]
   → Renders card grid
 
 User clicks action button
-  → Frontend calls action.endpoint (X-API-Key header)
+  → Frontend calls action.endpoint (Authorization: Bearer <access token>)
   → Service router handles it (calls upstream or returns direct result)
   → Returns ActionResult → displayed in ActionPanel
+
+On a 401/403, the frontend calls POST /auth/refresh with the refresh token to
+get a new access token and retries once, silently — no re-login unless the
+refresh token itself is invalid or expired.
 ```
 
 ### Frontend (`src/`)
-- `App.jsx` — root state (services, apiKey, selectedService), 30s polling, login/logout
+- `App.jsx` — root state (services, accessToken/refreshToken, selectedService), 30s polling, `authFetch` helper (attaches the access token, retries once after a silent refresh), login/logout
 - `ServiceCard.jsx` — renders one service tile; click opens ActionPanel
 - `ActionPanel.jsx` — modal with action buttons, confirm dialogs, loading/success/error states
-- `Login.jsx` — API key form with "remember me" (localStorage vs sessionStorage)
+- `Login.jsx` — username/password form with "remember me" (localStorage vs sessionStorage)
+- `utils/auth.js` — login/refresh requests and token storage helpers
 - `utils/icons.jsx` — maps icon name strings to Lucide components
 - `utils/storage.js` — safe localStorage/sessionStorage wrappers
 
@@ -68,7 +74,7 @@ User clicks action button
 - `Jenkinsfile` — calls shared `dockge-pipeline` library
 
 ### Environment Variables
-See `.env.example`. Key vars: `API_KEY`, `FRONTEND_PORT`, `FREE_GAMES_NOTIFIER_*`.
+See `.env.example`. Key vars: `DASHBOARD_USER`, `DASHBOARD_PASSWORD`, `JWT_SECRET`, `FRONTEND_PORT`, `FREE_GAMES_NOTIFIER_*`.
 
 ## Adding a New Service
 
@@ -81,5 +87,5 @@ See `.env.example`. Key vars: `API_KEY`, `FRONTEND_PORT`, `FREE_GAMES_NOTIFIER_*
 
 - Actions with `method: "href"` open an external URL; others call the backend endpoint
 - `ActionResult` has `success: bool` and `message: str` — the frontend displays `message` after any action
-- The `X-API-Key` header is required on every request; auth is handled centrally in `main.py`
+- Every route except `/auth/login` and `/auth/refresh` requires `Authorization: Bearer <access token>`; validation lives in `backend/auth.py` (`verify_access_token`), applied per-route/per-router rather than app-wide so the two auth endpoints stay public
 - CORS is configured for `localhost:5173` only (dev); production traffic goes through nginx

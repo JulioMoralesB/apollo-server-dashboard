@@ -3,7 +3,8 @@ import logging
 import re
 
 import config_loader
-from fastapi import APIRouter, HTTPException
+from auth import verify_access_token
+from fastapi import APIRouter, HTTPException, Security
 from models import Action, ActionResult, Service
 from monitoring import get_status
 from upstream import call_upstream
@@ -104,7 +105,7 @@ def build_config_router() -> APIRouter:
     Routes are no longer baked at startup — the dispatcher reads live config on
     every request, so config changes from the Admin UI take effect immediately.
     """
-    router = APIRouter()
+    router = APIRouter(dependencies=[Security(verify_access_token)])
     router.add_api_route(
         "/services/{service_slug}/actions/{action_slug}",
         action_dispatcher,

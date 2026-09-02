@@ -1,10 +1,17 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import ServiceCard from "./components/ServiceCard"
 import ActionPanel from "./components/ActionPanel"
 import AdminPanel from "./components/AdminPanel"
 import Login from "./components/Login"
 import { getIcon } from "./utils/icons"
-import { safeLocalStorage, safeSessionStorage } from "./utils/storage"
+import {
+  clearAuth,
+  loadStoredAuth,
+  login as loginRequest,
+  persistAccessToken,
+  persistAuth,
+  refreshAccessToken,
+} from "./utils/auth"
 
 const REFRESH_INTERVAL_MS = 30_000
 
@@ -14,32 +21,71 @@ function App() {
   const [error, setError] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [selectedService, setSelectedService] = useState(null)
-  const [apiKey, setApiKey] = useState(
-    () => safeLocalStorage.getItem("apiKey") || safeSessionStorage.getItem("apiKey") || ""
-  )
+  const [{ accessToken, refreshToken }, setAuth] = useState(loadStoredAuth)
   const [authError, setAuthError] = useState(false)
   const [adminOpen, setAdminOpen] = useState(false)
   const fetchServicesRef = useRef(null)
+  const accessTokenRef = useRef(accessToken)
+  const refreshTokenRef = useRef(refreshToken)
 
-  const handleLogin = (key, rememberMe) => {
-    setLoading(true)
-    setApiKey(key)
-    if (rememberMe) {
-      safeLocalStorage.setItem("apiKey", key)
-    } else {
-      safeSessionStorage.setItem("apiKey", key)
-    }
-  }
+  useEffect(() => { accessTokenRef.current = accessToken }, [accessToken])
+  useEffect(() => { refreshTokenRef.current = refreshToken }, [refreshToken])
 
-  const handleLogout = () => {
-    setApiKey("")
-    safeLocalStorage.removeItem("apiKey")
-    safeSessionStorage.removeItem("apiKey")
+  const handleLogout = useCallback(() => {
+    clearAuth()
+    setAuth({ accessToken: "", refreshToken: "" })
     setSelectedService(null)
     setServices([])
     setError(null)
     setLastUpdated(null)
     setAuthError(true)
+  }, [])
+
+  // Attaches the access token to every request and, on a 401/403, transparently
+  // refreshes it and retries once — the same silent renewal a background
+  // widget would need, so it's exercised here rather than only in the app.
+  const authFetch = useCallback((url, options = {}) => {
+    const doFetch = (token) =>
+      fetch(url, {
+        ...options,
+        headers: { ...options.headers, Authorization: `Bearer ${token}` },
+      })
+
+    return doFetch(accessTokenRef.current).then((res) => {
+      if (res.status !== 401 && res.status !== 403) return res
+      if (!refreshTokenRef.current) {
+        handleLogout()
+        return res
+      }
+      return refreshAccessToken(refreshTokenRef.current).then((newAccessToken) => {
+        if (!newAccessToken) {
+          handleLogout()
+          return res
+        }
+        accessTokenRef.current = newAccessToken
+        setAuth((prev) => ({ ...prev, accessToken: newAccessToken }))
+        persistAccessToken(newAccessToken)
+        return doFetch(newAccessToken)
+      })
+    })
+  }, [handleLogout])
+
+  const handleLogin = (username, password, rememberMe) => {
+    setLoading(true)
+    setAuthError(false)
+    loginRequest(username, password)
+      .then((data) => {
+        persistAuth({
+          accessToken: data.access_token,
+          refreshToken: data.refresh_token,
+          rememberMe,
+        })
+        setAuth({ accessToken: data.access_token, refreshToken: data.refresh_token })
+      })
+      .catch(() => {
+        setLoading(false)
+        setAuthError(true)
+      })
   }
 
   function handleSelectService(service) {
@@ -91,7 +137,7 @@ function App() {
   }, [services])
 
   useEffect(() => {
-    if (!apiKey) return
+    if (!accessToken) return
     let didCancel = false
     let currentController = null
 
@@ -100,12 +146,9 @@ function App() {
       const controller = new AbortController()
       currentController = controller
 
-      fetch("/services", { signal: controller.signal, headers: { "X-API-Key": apiKey } })
+      authFetch("/services", { signal: controller.signal })
         .then((res) => {
-          if (res.status === 401) {
-            handleLogout()
-            return
-          }
+          if (res.status === 401 || res.status === 403) return null
           if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
           return res.json()
         })
@@ -133,9 +176,9 @@ function App() {
       clearInterval(intervalId)
       currentController?.abort()
     }
-  }, [apiKey])
+  }, [accessToken, authFetch])
 
-  if (!apiKey) {
+  if (!accessToken) {
     return <Login onLogin={handleLogin} error={authError} />
   }
 
@@ -184,14 +227,14 @@ function App() {
 
       <div className="services-grid">
         {services.map((service, index) => (
-          <ServiceCard 
-            key={`${service.name}-${index}`} 
-            name={service.name} 
-            status={service.status} 
+          <ServiceCard
+            key={`${service.name}-${index}`}
+            name={service.name}
+            status={service.status}
             icon={service.icon}
             url={service.url}
             actions={service.actions}
-            onClick={() => handleSelectService(service)} 
+            onClick={() => handleSelectService(service)}
             index={index}
           />
         ))}
@@ -200,17 +243,17 @@ function App() {
         <ActionPanel
           service={selectedService}
           onClose={handleClosePanel}
-          apiKey={apiKey}
+          authFetch={authFetch}
         />
       )}
       {adminOpen && (
         <AdminPanel
           onClose={handleCloseAdmin}
-          apiKey={apiKey}
+          authFetch={authFetch}
           onConfigChanged={() => fetchServicesRef.current?.()}
         />
       )}
-      
+
     </div>
   )
 }
