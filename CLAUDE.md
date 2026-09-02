@@ -10,7 +10,7 @@ A home server dashboard that displays live service cards with status monitoring 
 
 **Frontend (React + Vite):**
 ```bash
-npm run dev       # dev server at localhost:5173, proxies /services → localhost:8001
+npm run dev       # dev server at localhost:5173, proxies /services, /config, /auth, /version → localhost:8001
 npm run build     # production bundle to dist/
 npm run lint      # ESLint on .js/.jsx
 npm run preview   # preview production build
@@ -56,6 +56,7 @@ refresh token itself is invalid or expired.
 - `ActionPanel.jsx` — modal with action buttons, confirm dialogs, loading/success/error states
 - `Login.jsx` — username/password form with "remember me" (localStorage vs sessionStorage)
 - `utils/auth.js` — login/refresh requests and token storage helpers
+- `utils/version.js` — build version + self-reload when the backend's version no longer matches
 - `utils/icons.jsx` — maps icon name strings to Lucide components
 - `utils/storage.js` — safe localStorage/sessionStorage wrappers
 
@@ -87,5 +88,6 @@ See `.env.example`. Key vars: `DASHBOARD_USER`, `DASHBOARD_PASSWORD`, `JWT_SECRE
 
 - Actions with `method: "href"` open an external URL; others call the backend endpoint
 - `ActionResult` has `success: bool` and `message: str` — the frontend displays `message` after any action
-- Every route except `/auth/login` and `/auth/refresh` requires `Authorization: Bearer <access token>`; validation lives in `backend/auth.py` (`verify_access_token`), applied per-route/per-router rather than app-wide so the two auth endpoints stay public
+- Every route except `/auth/login`, `/auth/refresh`, and `/version` requires `Authorization: Bearer <access token>`; validation lives in `backend/auth.py` (`verify_access_token`), applied per-route/per-router rather than app-wide so those endpoints stay public
+- `APP_VERSION`/`VITE_APP_VERSION` are baked into the Docker images at build time from the release tag (`build-args` in `.github/workflows/release.yml`); the frontend polls `GET /version` and reloads itself if it no longer matches the bundle it was built with, so a tab left open across a deploy self-heals instead of running stale JS against a newer backend indefinitely
 - CORS is configured for `localhost:5173` only (dev); production traffic goes through nginx

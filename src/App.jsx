@@ -12,6 +12,7 @@ import {
   persistAuth,
   refreshAccessToken,
 } from "./utils/auth"
+import { checkVersion } from "./utils/version"
 
 const REFRESH_INTERVAL_MS = 30_000
 
@@ -145,6 +146,8 @@ function App() {
       currentController?.abort()
       const controller = new AbortController()
       currentController = controller
+
+      checkVersion()
 
       authFetch("/services", { signal: controller.signal })
         .then((res) => {

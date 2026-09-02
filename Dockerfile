@@ -1,6 +1,9 @@
 # Stage 1: Build the React app
 FROM node:20-slim AS builder
 
+ARG VERSION=dev
+ENV VITE_APP_VERSION=${VERSION}
+
 WORKDIR /app
 
 COPY package*.json ./
