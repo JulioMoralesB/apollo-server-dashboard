@@ -30,3 +30,9 @@ class ActionResult(BaseModel):
     message: str | None = None
     status_code: int | None = None
     body: str | None = None
+
+
+class VersionResponse(BaseModel):
+    """The running backend's version, baked in at image build time."""
+
+    version: str

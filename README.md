@@ -22,7 +22,7 @@ Built with React + Vite (frontend) and FastAPI (backend). Runs as two Docker con
 ```
 .
 ├── Dockerfile              # Frontend: Node.js builder → nginx
-├── nginx.conf              # nginx: serves SPA + proxies /services and /config to backend
+├── nginx.conf              # nginx: serves SPA + proxies /services, /config, /auth, /version to backend
 ├── compose.yaml            # Docker Compose orchestration
 ├── Jenkinsfile             # CI/CD pipeline (Jenkins shared library)
 ├── config/
@@ -67,7 +67,7 @@ npm install
 npm run dev
 ```
 
-The Vite dev server proxies `/services` and `/config` to `http://localhost:8001` automatically.
+The Vite dev server proxies `/services`, `/config`, `/auth`, and `/version` to `http://localhost:8001` automatically.
 
 ## Self-hosting
 

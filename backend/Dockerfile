@@ -1,5 +1,8 @@
 FROM python:3.12-slim
 
+ARG VERSION=dev
+ENV APP_VERSION=${VERSION}
+
 WORKDIR /app
 
 RUN groupadd --system --gid 1000 appuser \

@@ -1,6 +1,7 @@
 """FastAPI application entry point: auth, lifespan, and top-level API routes."""
 import asyncio
 import logging
+import os
 from contextlib import asynccontextmanager
 
 import config_loader
@@ -19,13 +20,15 @@ from config_service import build_config_router, yaml_to_card
 from dotenv import load_dotenv
 from fastapi import FastAPI, Security
 from fastapi.middleware.cors import CORSMiddleware
-from models import Service
+from models import Service, VersionResponse
 from monitoring import run_monitoring_loop
 from yaml_models import YamlService
 
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
+
+APP_VERSION = os.getenv("APP_VERSION", "dev")
 
 
 @asynccontextmanager
@@ -65,6 +68,12 @@ def login(credentials: LoginRequest) -> TokenPairResponse:
 def refresh(payload: RefreshRequest) -> AccessTokenResponse:
     """Exchange a valid refresh token for a new access token."""
     return refresh_access_token(payload.refresh_token)
+
+
+@app.get("/version")
+def get_version() -> VersionResponse:
+    """Return the running backend's version so the frontend can detect a stale build."""
+    return VersionResponse(version=APP_VERSION)
 
 
 @app.get("/services", dependencies=[Security(verify_access_token)])

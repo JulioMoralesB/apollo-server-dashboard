@@ -321,3 +321,16 @@
         padding: 5px 6px;
     }
 }
+
+.admin-version {
+    font-family: monospace;
+    font-size: 11px;
+    color: rgba(250, 250, 255, 0.35);
+    text-align: center;
+    margin: 16px 0 0;
+    flex-shrink: 0;
+}
+
+.admin-version-mismatch {
+    color: var(--red);
+}

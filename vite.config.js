@@ -8,6 +8,8 @@ export default defineConfig({
     proxy: {
       '/services': 'http://localhost:8001',
       '/config': 'http://localhost:8001',
+      '/auth': 'http://localhost:8001',
+      '/version': 'http://localhost:8001',
     },
   },
 })

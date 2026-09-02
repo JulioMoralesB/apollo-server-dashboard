@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useEffect, useState } from "react"
 import { getIcon } from "../utils/icons"
+import { BUILD_VERSION } from "../utils/version"
 import ServiceForm from "./ServiceForm"
 import "./AdminPanel.css"
 
@@ -11,6 +12,7 @@ function AdminPanel({ onClose, authFetch, onConfigChanged }) {
     const [formError, setFormError] = useState(null)
     const [editingIndex, setEditingIndex] = useState(null) // null=list, "new"=add, number=edit
     const [deleteIndex, setDeleteIndex] = useState(null)
+    const [backendVersion, setBackendVersion] = useState(null)
 
     // dragIndex: which row is being dragged
     // dropIndex: insertion point (0…n, "insert before this index")
@@ -53,6 +55,13 @@ function AdminPanel({ onClose, authFetch, onConfigChanged }) {
             .then(data => { setConfig(data); setLoading(false) })
             .catch(err => { setError(err.message); setLoading(false) })
     }, [authFetch])
+
+    useEffect(() => {
+        fetch("/version")
+            .then(res => res.ok ? res.json() : null)
+            .then(data => setBackendVersion(data?.version ?? null))
+            .catch(() => {})
+    }, [])
 
     function putConfig(updated) {
         setSaving(true)
@@ -267,6 +276,12 @@ function AdminPanel({ onClose, authFetch, onConfigChanged }) {
                     </div>
                 </div>
             )}
+
+            <p className={`admin-version${backendVersion && backendVersion !== BUILD_VERSION ? " admin-version-mismatch" : ""}`}>
+                {backendVersion && backendVersion !== BUILD_VERSION
+                    ? `Frontend ${BUILD_VERSION} · API ${backendVersion} — mismatch, reloading soon`
+                    : `Apollo Dashboard ${BUILD_VERSION}`}
+            </p>
         </div>
     )
 }
