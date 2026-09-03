@@ -65,7 +65,8 @@ def call_upstream(
         if response.is_success:
             logger.info("%s %s%s -> HTTP %s", method_upper, url, tag, status_code)
             return ActionResult(
-                success=True, status_code=status_code, body=response_body, message=message,
+                success=True, status_code=status_code,
+                body=response_body, message=message,
             )
         else:
             logger.warning(
@@ -73,7 +74,8 @@ def call_upstream(
                 method_upper, url, tag, status_code, raw[:500],
             )
             return ActionResult(
-                success=False, status_code=status_code, body=response_body, message=message,
+                success=False, status_code=status_code,
+                body=response_body, message=message,
             )
     except httpx.RequestError as exc:
         logger.warning("%s %s%s failed: %s", method_upper, url, tag, exc)
