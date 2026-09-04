@@ -1,12 +1,31 @@
 import "./SummaryPanel.css"
 
+// Parses "YYYY-MM-DD" as local midnight instead of UTC midnight (the default
+// behavior of `new Date(str)` for date-only ISO strings) — CaduTrack sends a
+// bare calendar date with no timezone attached, so it should mean the same
+// day for every viewer rather than shifting with their UTC offset.
+function parseDateOnly(str) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str)
+  if (!m) return new Date(str)
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+}
+
+function startOfLocalDay(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate())
+}
+
 // Returns null when *iso* is missing or unparseable — some upstream fields
 // (e.g. FreeGamesNotifier's end_date) can be an empty string in practice.
+// Compares by local calendar day rather than raw elapsed hours, so a date
+// that's tomorrow doesn't read as "today" just because the viewer is in a
+// timezone behind UTC and UTC has already rolled over.
 function formatEta(iso) {
   if (!iso) return null
-  const target = new Date(iso)
+  const target = parseDateOnly(iso)
   if (Number.isNaN(target.getTime())) return null
-  const diffDays = Math.round((target.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  const diffDays = Math.round(
+    (startOfLocalDay(target) - startOfLocalDay(new Date())) / (1000 * 60 * 60 * 24)
+  )
   if (diffDays < 0) return "expired"
   if (diffDays === 0) return "today"
   if (diffDays === 1) return "1 day"
