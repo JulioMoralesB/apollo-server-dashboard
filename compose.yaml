@@ -17,15 +17,10 @@ services:
     # image: ghcr.io/juliomoralesb/apollo-server-dashboard-backend:1.2.3
     image: ghcr.io/juliomoralesb/apollo-server-dashboard-backend:latest
     container_name: apollo-server-dashboard-backend
-    environment:
-      - DASHBOARD_USER=${DASHBOARD_USER:-}
-      - DASHBOARD_PASSWORD=${DASHBOARD_PASSWORD:-}
-      - JWT_SECRET=${JWT_SECRET:-}
-      - FREE_GAMES_NOTIFIER_URL=${FREE_GAMES_NOTIFIER_URL:-http://free-games-notifier:8000}
-      - FREE_GAMES_NOTIFIER_API_KEY=${FREE_GAMES_NOTIFIER_API_KEY:-}
-      - FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL=${FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL:-}
-      - CADUTRACK_API_KEY=${CADUTRACK_API_KEY:-}
-      - SERVICES_CONFIG=${SERVICES_CONFIG:-/app/config/services.yaml}
+    # Loads every variable in .env straight into the container — add a new
+    # one there and it's available immediately, no matching edit needed here.
+    env_file:
+      - .env
     volumes:
       - ./config:/app/config
       - /var/run/docker.sock:/var/run/docker.sock:ro

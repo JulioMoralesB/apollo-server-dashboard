@@ -82,8 +82,7 @@ Everything is driven by `config/services.yaml` (gitignored — see `backend/serv
 - `Dockerfile` — two-stage: Node 20 build → nginx serving SPA
 - `backend/Dockerfile` — Python 3.12-slim + uvicorn
 - `nginx.conf` — proxies `/services/*` to backend, serves SPA for everything else
-- `compose.yaml` — two services on a shared external Docker network
-- `Jenkinsfile` — calls shared `dockge-pipeline` library
+- `compose.yaml` — two services on a shared external Docker network, pulling versioned images from GHCR (built by `.github/workflows/release.yml` on a `v*.*.*` tag push)
 
 ### Environment Variables
 See `.env.example`. Key vars: `DASHBOARD_USER`, `DASHBOARD_PASSWORD`, `JWT_SECRET`, `FRONTEND_PORT`, `FREE_GAMES_NOTIFIER_*`, `CADUTRACK_API_KEY`.

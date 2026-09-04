@@ -24,7 +24,6 @@ Built with React + Vite (frontend) and FastAPI (backend). Runs as two Docker con
 ├── Dockerfile              # Frontend: Node.js builder → nginx
 ├── nginx.conf              # nginx: serves SPA + proxies /services, /config, /auth, /version to backend
 ├── compose.yaml            # Docker Compose orchestration
-├── Jenkinsfile             # CI/CD pipeline (Jenkins shared library)
 ├── config/
 │   └── services.yaml       # Service definitions (gitignored, created from example on first run)
 ├── src/                    # React frontend (Vite)
@@ -118,6 +117,8 @@ Available versions are listed on the [Releases](https://github.com/JulioMoralesB
 | `SERVICES_CONFIG` | `/app/config/services.yaml` | Path to the service config file inside the container |
 
 The table above covers the core variables required to run the dashboard. Optional integration variables (e.g. `FREE_GAMES_NOTIFIER_*`) are documented with comments in `.env.example`.
+
+`compose.yaml` loads the whole `.env` file into the backend container (`env_file:`), so a new integration variable only needs to be added to `.env` — no matching edit to `compose.yaml` required.
 
 > **Migrating from `API_KEY`:** older setups used a single `API_KEY` for both login and every API request. Replace it in `.env` with `DASHBOARD_USER`, `DASHBOARD_PASSWORD`, and a new `JWT_SECRET` (`openssl rand -hex 32`), then `docker compose up -d` — existing bookmarks that relied on the old key stop working and everyone needs to log in again.
 
