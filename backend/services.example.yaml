@@ -74,6 +74,13 @@
   # Use ${ENV_VAR} to reference environment variables — values are never hardcoded.
   action-headers:
     X-API-Key: API-KEY-1234 # You can add environment variables in the .env file and reference them here for better security, e.g. X-API-Key: ${FREE_GAMES_NOTIFIER_API_KEY}
+  # Optional: if the service exposes its own read-only summary endpoint, the
+  # dashboard shows it in a dedicated panel (GET /services/<slug>/summary
+  # proxies this response through as-is — each service's summary shape is
+  # its own, there's no shared schema).
+  summary-url: https://example.com/api/summary
+  summary-headers:
+    X-API-Key: ${FREE_GAMES_NOTIFIER_API_KEY}
   actions:
     - label: Dashboard
       icon: layout-dashboard

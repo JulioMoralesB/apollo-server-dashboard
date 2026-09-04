@@ -21,6 +21,7 @@ class Service(BaseModel):
     icon: str | None = None
     url: str | None = None
     actions: list[Action] | None = None
+    summary_endpoint: str | None = None  # backend path to GET this service's summary
 
 
 class ActionResult(BaseModel):

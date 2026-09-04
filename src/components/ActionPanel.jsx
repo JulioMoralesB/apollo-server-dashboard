@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./ActionPanel.css"
 import { getIcon } from "../utils/icons.jsx"
+import SummaryPanel from "./SummaryPanel.jsx"
 
 
 // ─── JSON syntax highlighter ─────────────────────────────────────────────────
@@ -69,7 +70,7 @@ function ResponseViewer({ result, onDismiss }) {
 
 // ─── Main panel ──────────────────────────────────────────────────────────────
 
-function ActionPanel({ service, onClose, authFetch }) {
+function ActionPanel({ service, summary, onClose, authFetch }) {
     const actions = service.actions || [];
     const [actionStates, setActionStates] = useState({});
     const [lastResult, setLastResult] = useState(null);
@@ -157,6 +158,8 @@ function ActionPanel({ service, onClose, authFetch }) {
                 <h2>{service.name}</h2>
                 <button className="panel-back" onClick={onClose}>← Back</button>
             </div>
+
+            <SummaryPanel summary={summary} />
 
             {actions.length === 0 ? (
                 <p className="panel-empty">No actions configured.</p>

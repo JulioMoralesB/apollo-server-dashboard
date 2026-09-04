@@ -24,6 +24,7 @@ services:
       - FREE_GAMES_NOTIFIER_URL=${FREE_GAMES_NOTIFIER_URL:-http://free-games-notifier:8000}
       - FREE_GAMES_NOTIFIER_API_KEY=${FREE_GAMES_NOTIFIER_API_KEY:-}
       - FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL=${FREE_GAMES_NOTIFIER_TEST_WEBHOOK_URL:-}
+      - CADUTRACK_API_KEY=${CADUTRACK_API_KEY:-}
       - SERVICES_CONFIG=${SERVICES_CONFIG:-/app/config/services.yaml}
     volumes:
       - ./config:/app/config

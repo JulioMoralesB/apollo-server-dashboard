@@ -3,6 +3,8 @@ import logging
 import re
 
 import config_loader
+import http_client
+import httpx
 from auth import verify_access_token
 from fastapi import APIRouter, HTTPException, Security
 from models import Action, ActionResult, Service
@@ -19,9 +21,9 @@ def _slug(text: str) -> str:
 
 def yaml_to_card(svc: YamlService) -> Service:
     """Convert a ``YamlService`` config entry into a frontend-ready ``Service`` card."""
+    slug = _slug(svc.name)
     actions: list[Action] = []
     if svc.actions:
-        slug = _slug(svc.name)
         for action in svc.actions:
             if action.method.lower() == "href":
                 actions.append(Action(
@@ -43,7 +45,57 @@ def yaml_to_card(svc: YamlService) -> Service:
         icon=svc.icon or "server",
         url=svc.url,
         actions=actions or None,
+        summary_endpoint=f"/services/{slug}/summary" if svc.summary_url else None,
     )
+
+
+def _find_service(service_slug: str) -> YamlService:
+    """Look up a configured service by its slug, reading live config on every call."""
+    services = config_loader.get_services()
+    svc = next((s for s in services if _slug(s.name) == service_slug), None)
+    if svc is None:
+        raise HTTPException(
+            status_code=404, detail=f"Service '{service_slug}' not found"
+        )
+    return svc
+
+
+def summary_dispatcher(service_slug: str) -> dict:
+    """Live-fetch and pass through a service's own ``/api/summary``-shaped JSON.
+
+    Each service defines its own summary contract — this proxies the raw
+    response as-is rather than normalizing it into a shared schema, since a
+    dashboard "summary" means something different per service.
+    """
+    svc = _find_service(service_slug)
+    if not svc.summary_url:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Service '{svc.name}' has no summary-url configured",
+        )
+
+    client = http_client.get()
+    try:
+        response = client.get(svc.summary_url, headers=svc.summary_headers)
+    except httpx.RequestError as exc:
+        logger.warning("Summary fetch failed for '%s': %s", svc.name, exc)
+        raise HTTPException(
+            status_code=503, detail=f"Service unreachable: {exc}"
+        ) from exc
+
+    if response.is_success:
+        return response.json()
+
+    logger.warning(
+        "Summary fetch for '%s' -> HTTP %s: %s",
+        svc.name, response.status_code, response.text[:500],
+    )
+    # Never forward the upstream's own status code as-is: 401/403 are
+    # reserved for *our* access token in this app's convention — authFetch
+    # treats any 401/403 response, from any endpoint, as "refresh and retry",
+    # so bubbling an upstream auth failure through unchanged would trigger a
+    # silent-refresh loop against our own /auth/refresh forever.
+    raise HTTPException(status_code=502, detail=response.text[:500])
 
 
 def action_dispatcher(service_slug: str, action_slug: str) -> ActionResult:
@@ -52,13 +104,7 @@ def action_dispatcher(service_slug: str, action_slug: str) -> ActionResult:
     This means adding, editing, or removing services with actions from the
     Admin UI takes effect immediately without a backend restart.
     """
-    services = config_loader.get_services()
-
-    svc = next((s for s in services if _slug(s.name) == service_slug), None)
-    if svc is None:
-        raise HTTPException(
-            status_code=404, detail=f"Service '{service_slug}' not found"
-        )
+    svc = _find_service(service_slug)
 
     action = next(
         (a for a in (svc.actions or []) if _slug(a.label) == action_slug),
@@ -111,6 +157,11 @@ def build_config_router() -> APIRouter:
         action_dispatcher,
         methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
         response_model=ActionResult,
+    )
+    router.add_api_route(
+        "/services/{service_slug}/summary",
+        summary_dispatcher,
+        methods=["GET"],
     )
     logger.info(
         "Registered live-config action dispatcher"
