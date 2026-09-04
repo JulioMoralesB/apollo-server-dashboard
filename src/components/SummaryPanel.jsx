@@ -33,8 +33,10 @@ function FreeGamesSummary({ data }) {
   )
 }
 
-// CaduTrack's /summary: { expired, expiring_soon, next: { name, expires_at } | null }
+// CaduTrack's /summary: { expired, expiring_soon, next: { name, expires_at }[] }
+// `next` holds every item tied for the most urgent expiration date, not just one.
 function CaduTrackSummary({ data }) {
+  const next = data.next ?? []
   return (
     <>
       <div className="summary-stats">
@@ -47,13 +49,23 @@ function CaduTrackSummary({ data }) {
           <span className="summary-stat-label">Expiring soon</span>
         </div>
       </div>
-      {data.next ? (
-        <p className="summary-next">
-          Next: <strong>{data.next.name}</strong>
-          {formatEta(data.next.expires_at) ? ` · ${formatEta(data.next.expires_at)}` : ""}
-        </p>
-      ) : (
+      {next.length === 0 ? (
         <p className="summary-empty">Nothing tracked</p>
+      ) : (
+        <>
+          <p className="summary-next-label">Next</p>
+          <ul className="summary-list">
+            {next.map((item, i) => {
+              const eta = formatEta(item.expires_at)
+              return (
+                <li key={i}>
+                  <span className="summary-list-title">{item.name}</span>
+                  {eta && <span className="summary-list-meta">{eta}</span>}
+                </li>
+              )
+            })}
+          </ul>
+        </>
       )}
     </>
   )

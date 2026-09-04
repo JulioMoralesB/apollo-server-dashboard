@@ -79,12 +79,10 @@
   color: rgba(250, 250, 255, 0.35);
 }
 
-.summary-next {
-  font-size: 11px;
-  color: rgba(250, 250, 255, 0.6);
-  margin: 0;
-}
-
-.summary-next strong {
-  color: var(--blueishWhite);
+.summary-next-label {
+  font-family: monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: rgba(250, 250, 255, 0.35);
+  margin: 0 0 6px;
 }
