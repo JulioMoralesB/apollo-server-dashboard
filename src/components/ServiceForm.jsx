@@ -9,7 +9,7 @@ const EMPTY_ACTION = { label: "", icon: "", endpoint: "", method: "POST", body: 
 
 const EMPTY_SERVICE = {
     name: "", icon: "", url: "", action_url: "", action_timeout: 30,
-    action_headers: {}, docker_container: "",
+    action_headers: {}, summary_url: "", summary_headers: {}, docker_container: "",
     monitor: false, monitor_url: "", monitor_headers: {}, monitor_interval: 60, monitor_timeout: 5,
     monitor_retries: 3, monitor_expect_status: 200, monitor_expect_body: "",
     use_docker_health: false, actions: [],
@@ -52,10 +52,12 @@ function ServiceForm({ service, onSave, onCancel, saving, error }) {
             icon: service.icon ?? "",
             url: service.url ?? "",
             action_url: service.action_url ?? "",
+            summary_url: service.summary_url ?? "",
             docker_container: service.docker_container ?? "",
             monitor_url: service.monitor_url ?? "",
             monitor_expect_body: service.monitor_expect_body ?? "",
             action_headers: service.action_headers ?? {},
+            summary_headers: service.summary_headers ?? {},
             monitor_headers: service.monitor_headers ?? {},
             actions: (service.actions ?? []).map(actionToForm),
           }
@@ -63,6 +65,7 @@ function ServiceForm({ service, onSave, onCancel, saving, error }) {
 
     const [form, setForm] = useState(init)
     const [headersText, setHeadersText] = useState(headersToText(init.action_headers))
+    const [summaryHeadersText, setSummaryHeadersText] = useState(headersToText(init.summary_headers))
     const [monitorHeadersText, setMonitorHeadersText] = useState(headersToText(init.monitor_headers))
     const [errors, setErrors] = useState({})
     // pickerFor: null=closed | "service-icon" | { actionIndex: number }
@@ -112,11 +115,13 @@ function ServiceForm({ service, onSave, onCancel, saving, error }) {
             icon: form.icon.trim() || null,
             url: form.url.trim() || null,
             action_url: form.action_url.trim() || null,
+            summary_url: form.summary_url.trim() || null,
             docker_container: form.docker_container.trim() || null,
             monitor_url: form.monitor_url.trim() || null,
             monitor_expect_body: form.monitor_expect_body.trim() || null,
             monitor_headers: textToHeaders(monitorHeadersText) || null,
             action_headers: textToHeaders(headersText) || null,
+            summary_headers: textToHeaders(summaryHeadersText) || null,
             actions: form.actions.length ? form.actions.map(formToAction) : null,
         }
         onSave(service)
@@ -170,6 +175,17 @@ function ServiceForm({ service, onSave, onCancel, saving, error }) {
                                 value={headersText}
                                 onChange={e => setHeadersText(e.target.value)}
                                 placeholder={"X-API-Key: secret\nContent-Type: application/json"}
+                            />
+                        </Field>
+                        <Field label="Summary URL (optional — shows a read-only summary in this service's panel)">
+                            <input value={form.summary_url} onChange={e => set("summary_url", e.target.value)} placeholder="https://service.example.com/api/summary" />
+                        </Field>
+                        <Field label="Summary headers (one per line: Key: Value)">
+                            <textarea
+                                rows={2}
+                                value={summaryHeadersText}
+                                onChange={e => setSummaryHeadersText(e.target.value)}
+                                placeholder={"X-API-Key: secret"}
                             />
                         </Field>
                         <Field label="Docker container name">
