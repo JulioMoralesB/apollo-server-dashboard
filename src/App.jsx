@@ -18,6 +18,7 @@ const REFRESH_INTERVAL_MS = 30_000
 
 function App() {
   const [services, setServices] = useState([])
+  const [summaries, setSummaries] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
@@ -37,6 +38,7 @@ function App() {
     setAuth({ accessToken: "", refreshToken: "" })
     setSelectedService(null)
     setServices([])
+    setSummaries({})
     setError(null)
     setLastUpdated(null)
     setAuthError(true)
@@ -161,11 +163,29 @@ function App() {
           setServices(data)
           setLoading(false)
           setLastUpdated(new Date())
+          data
+            .filter((s) => s.summary_endpoint)
+            .forEach((s) => fetchSummary(s.name, s.summary_endpoint, controller.signal))
         })
         .catch((err) => {
           if (didCancel || err.name === "AbortError") return
           setError(err.message)
           setLoading(false)
+        })
+    }
+
+    function fetchSummary(name, endpoint, signal) {
+      authFetch(endpoint, { signal })
+        .then((res) =>
+          res.json().catch(() => ({})).then((body) => {
+            if (didCancel) return
+            const entry = res.ok ? body : { __error: body.detail || `HTTP ${res.status}` }
+            setSummaries((prev) => ({ ...prev, [name]: entry }))
+          })
+        )
+        .catch((err) => {
+          if (didCancel || err.name === "AbortError") return
+          setSummaries((prev) => ({ ...prev, [name]: { __error: err.message } }))
         })
     }
 
@@ -245,6 +265,7 @@ function App() {
       {selectedService && (
         <ActionPanel
           service={selectedService}
+          summary={summaries[selectedService.name]}
           onClose={handleClosePanel}
           authFetch={authFetch}
         />
