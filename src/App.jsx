@@ -257,6 +257,7 @@ function App() {
             icon={service.icon}
             url={service.url}
             actions={service.actions}
+            summaryEndpoint={service.summary_endpoint}
             onClick={() => handleSelectService(service)}
             index={index}
           />
