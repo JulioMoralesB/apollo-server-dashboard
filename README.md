@@ -16,6 +16,7 @@ Built with React + Vite (frontend) and FastAPI (backend). Runs as two Docker con
 - Admin UI to manage services without editing files
 - Declarative YAML config — no code required to add services
 - Username/password login with short-lived, auto-refreshing session tokens
+- Per-service summary panel: opt-in services can render their own live JSON summary inside their action panel
 
 ## Project Structure
 
@@ -28,17 +29,21 @@ Built with React + Vite (frontend) and FastAPI (backend). Runs as two Docker con
 │   └── services.yaml       # Service definitions (gitignored, created from example on first run)
 ├── src/                    # React frontend (Vite)
 │   └── components/
-│       ├── AdminPanel.jsx  # Config management UI
+│       ├── AdminPanel.jsx  # Config management UI (list/add/edit/delete/reorder)
 │       ├── ServiceForm.jsx # Add / edit service form
+│       ├── IconPicker.jsx  # Searchable icon grid used by ServiceForm
 │       ├── ServiceCard.jsx # Dashboard card
-│       └── ActionPanel.jsx # Action button panel
+│       ├── ActionPanel.jsx # Action button panel
+│       ├── SummaryPanel.jsx # Per-service live summary, embedded in ActionPanel
+│       └── Login.jsx       # Username/password login form
 └── backend/
     ├── Dockerfile          # Python 3.12-slim + uvicorn
-    ├── main.py             # FastAPI app, auth, /services and /config endpoints
+    ├── main.py             # FastAPI app, auth routes, /services and /config endpoints
+    ├── auth.py             # JWT login/refresh + bcrypt password check
     ├── models.py           # Pydantic models: Service, Action, ActionResult
     ├── yaml_models.py      # Pydantic model for services.yaml
     ├── config_loader.py    # Loads, validates, and saves services.yaml
-    ├── config_service.py   # Builds Service cards and dynamic action routes from YAML
+    ├── config_service.py   # Builds Service cards and dynamic action/summary routes from YAML
     ├── monitoring.py       # Background HTTP and Docker health check loop
     ├── docker_client.py    # Docker socket wrapper: container status lookup
     ├── http_client.py      # Shared httpx client singleton
@@ -190,6 +195,19 @@ Services are defined in `config/services.yaml`. You can edit the file directly o
       icon: external-link
       endpoint: https://my-service.example.com
       method: href
+```
+
+### Service with a summary panel
+
+A service that exposes its own read-only summary endpoint gets a dedicated panel showing that data. The response is proxied through as-is — there's no shared schema, so the frontend renders it per-service based on its shape.
+
+```yaml
+- name: My Service
+  icon: server
+  url: https://my-service.example.com
+  summary-url: https://my-service.example.com/api/summary
+  summary-headers:
+    X-API-Key: ${MY_SERVICE_API_KEY}
 ```
 
 ### Reaching non-Docker services on the same host
