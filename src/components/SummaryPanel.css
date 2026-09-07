@@ -35,6 +35,19 @@
   gap: 2px;
 }
 
+.summary-list li.clickable a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.summary-list li.clickable:hover .summary-list-title {
+  text-decoration: underline;
+}
+
 .summary-list-title {
   font-size: 12px;
   color: var(--blueishWhite);
