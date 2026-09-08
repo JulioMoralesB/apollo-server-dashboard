@@ -41,11 +41,18 @@ function FreeGamesSummary({ data }) {
     <ul className="summary-list">
       {promos.map((p, i) => {
         const eta = formatEta(p.end_date)
-        return (
-          <li key={i}>
+        const content = (
+          <>
             <span className="summary-list-title">{p.title}</span>
             <span className="summary-list-meta">{p.store}{eta ? ` · ends in ${eta}` : ""}</span>
+          </>
+        )
+        return p.link ? (
+          <li key={i} className="clickable">
+            <a href={p.link} target="_blank" rel="noopener noreferrer">{content}</a>
           </li>
+        ) : (
+          <li key={i}>{content}</li>
         )
       })}
     </ul>
