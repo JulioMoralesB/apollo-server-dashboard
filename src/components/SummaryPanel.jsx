@@ -63,7 +63,10 @@ function FreeGamesSummary({ data }) {
 // `expired_products` and `next` share the same item shape but are separate
 // buckets — `next` holds only the item(s) genuinely expiring soon (not yet
 // expired), `expired_products` the already-expired ones.
-function CaduTrackItemList({ label, items }) {
+// variant mirrors the widgets' red/expired-amber/soon distinction (muted via
+// CSS, since the full-saturation tint that reads fine in a small widget row
+// is too loud spread across a whole panel).
+function CaduTrackItemList({ label, items, variant }) {
   return (
     <>
       <p className="summary-next-label">{label}</p>
@@ -72,7 +75,7 @@ function CaduTrackItemList({ label, items }) {
           const eta = formatEta(item.expires_at)
           return (
             <li key={i}>
-              <span className="summary-list-title">{item.name}</span>
+              <span className={`summary-list-title ${variant}`}>{item.name}</span>
               {eta && <span className="summary-list-meta">{eta}</span>}
             </li>
           )
@@ -101,8 +104,8 @@ function CaduTrackSummary({ data }) {
         <p className="summary-empty">Nothing tracked</p>
       ) : (
         <>
-          {expiredProducts.length > 0 && <CaduTrackItemList label="Expired" items={expiredProducts} />}
-          {next.length > 0 && <CaduTrackItemList label="Next" items={next} />}
+          {expiredProducts.length > 0 && <CaduTrackItemList label="Expired" items={expiredProducts} variant="danger" />}
+          {next.length > 0 && <CaduTrackItemList label="Next" items={next} variant="warning" />}
         </>
       )}
     </>

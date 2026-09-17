@@ -53,6 +53,14 @@
   color: var(--blueishWhite);
 }
 
+.summary-list-title.danger {
+  color: rgba(255, 16, 64, 0.8);
+}
+
+.summary-list-title.warning {
+  color: rgba(255, 179, 0, 0.8);
+}
+
 .summary-list-meta {
   font-family: monospace;
   font-size: 10px;
