@@ -59,9 +59,34 @@ function FreeGamesSummary({ data }) {
   )
 }
 
-// CaduTrack's /summary: { expired, expiring_soon, next: { name, expires_at }[] }
-// `next` holds every item tied for the most urgent expiration date, not just one.
+// CaduTrack's /summary: { expired, expired_products[], expiring_soon, next[] }
+// `expired_products` and `next` share the same item shape but are separate
+// buckets — `next` holds only the item(s) genuinely expiring soon (not yet
+// expired), `expired_products` the already-expired ones.
+// variant mirrors the widgets' red/expired-amber/soon distinction (muted via
+// CSS, since the full-saturation tint that reads fine in a small widget row
+// is too loud spread across a whole panel).
+function CaduTrackItemList({ label, items, variant }) {
+  return (
+    <>
+      <p className="summary-next-label">{label}</p>
+      <ul className="summary-list">
+        {items.map((item, i) => {
+          const eta = formatEta(item.expires_at)
+          return (
+            <li key={i}>
+              <span className={`summary-list-title ${variant}`}>{item.name}</span>
+              {eta && <span className="summary-list-meta">{eta}</span>}
+            </li>
+          )
+        })}
+      </ul>
+    </>
+  )
+}
+
 function CaduTrackSummary({ data }) {
+  const expiredProducts = data.expired_products ?? []
   const next = data.next ?? []
   return (
     <>
@@ -75,22 +100,12 @@ function CaduTrackSummary({ data }) {
           <span className="summary-stat-label">Expiring soon</span>
         </div>
       </div>
-      {next.length === 0 ? (
+      {expiredProducts.length === 0 && next.length === 0 ? (
         <p className="summary-empty">Nothing tracked</p>
       ) : (
         <>
-          <p className="summary-next-label">Next</p>
-          <ul className="summary-list">
-            {next.map((item, i) => {
-              const eta = formatEta(item.expires_at)
-              return (
-                <li key={i}>
-                  <span className="summary-list-title">{item.name}</span>
-                  {eta && <span className="summary-list-meta">{eta}</span>}
-                </li>
-              )
-            })}
-          </ul>
+          {expiredProducts.length > 0 && <CaduTrackItemList label="Expired" items={expiredProducts} variant="danger" />}
+          {next.length > 0 && <CaduTrackItemList label="Next" items={next} variant="warning" />}
         </>
       )}
     </>
